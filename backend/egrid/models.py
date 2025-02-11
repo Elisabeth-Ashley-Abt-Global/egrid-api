@@ -60,7 +60,7 @@ class Plant(models.Model):
     plprmfl = models.CharField(max_length=1000, null=True, blank=True)
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
     coalflagind = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn_id = models.IntegerField(null=True, blank=True)
+    subrgn = models.CharField(null=True, blank=True, max_length=4)
     year = models.IntegerField(null=True, blank=True)
     
     def __str__(self):
@@ -723,10 +723,10 @@ class StateResourceMix(models.Model):
 
 class SubrgnAnnualCombustion(models.Model): 
     id = models.AutoField(primary_key=True)
-    subrgn_id = models.ForeignKey(
+    subrgn = models.ForeignKey(
                 Subregion,
                 on_delete=models.CASCADE,  # Deletes SubrgnAnnualCombustion records if the related Plant is deleted
-                db_column='subrgn_id'          
+                db_column='subrgn'          
             ) 
     srhtian   = models.FloatField(null=True, blank=True)
     srhtioz   = models.FloatField(null=True, blank=True)
@@ -752,10 +752,10 @@ class SubrgnAnnualCombustion(models.Model):
 
 class SubrgnEmissionRate(models.Model): 
     id = models.AutoField(primary_key=True)
-    subrgn_id = models.ForeignKey(
+    subrgn = models.ForeignKey(
                 Subregion,
                 on_delete=models.CASCADE,  # Deletes SubrgnEmissionRate records if the related Plant is deleted
-                db_column='subrgn_id'          
+                db_column='subrgn'          
             ) 
     srnoxrta = models.FloatField(null=True, blank=True)
     srnoxrto = models.FloatField(null=True, blank=True)
@@ -791,10 +791,10 @@ class SubrgnEmissionRate(models.Model):
   
 class SubrgnFuelTypeEmissionRate(models.Model):  
     id = models.AutoField(primary_key=True)
-    subrgn_id = models.ForeignKey(
+    subrgn = models.ForeignKey(
                 Subregion,
                 on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
-                db_column='subrgn_id'          
+                db_column='subrgn'          
             ) 
     sronxort = models.FloatField(null=True, blank=True)
     srgnxort = models.FloatField(null=True, blank=True)
