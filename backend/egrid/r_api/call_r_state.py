@@ -5,7 +5,8 @@ from egrid.models import (
     StateEmissionRate, 
     StateFuelTypeEmissionRate,
     StateFuelTypeGeneration,
-    StateNonBaseloadEmissionRate
+    StateNonBaseloadEmissionRate,
+    StateResourceMix
 )
 
 import requests 
@@ -223,6 +224,29 @@ def call_r_state():
                             'stnbofpr':sanitize_numeric(item.get('stnbofpr')),
                             'stnboppr':sanitize_numeric(item.get('stnboppr')),
                             'year':sanitize_numeric(item.get('year')),
+                        }
+                    )
+
+                    StateResourceMix.objects.update_or_create(
+                        fipsst=State.objects.get(fipsst=item.get('fipsst')),
+                        defaults={  
+                            'stclpr':sanitize_numeric(item.get('stclpr')),
+                            'stolpr':sanitize_numeric(item.get('stolpr')),
+                            'stgspr':sanitize_numeric(item.get('stgspr')),
+                            'stncpr':sanitize_numeric(item.get('stncpr')),
+                            'sthypr':sanitize_numeric(item.get('sthypr')),
+                            'stbmpr':sanitize_numeric(item.get('stbmpr')),
+                            'stwipr':sanitize_numeric(item.get('stwipr')),
+                            'stsopr':sanitize_numeric(item.get('stsopr')),
+                            'stgtpr':sanitize_numeric(item.get('stgtpr')),
+                            'stofpr':sanitize_numeric(item.get('stofpr')),
+                            'stoppr':sanitize_numeric(item.get('stoppr')),
+                            'sttnpr':sanitize_numeric(item.get('sttnpr')),
+                            'sttrpr':sanitize_numeric(item.get('sttrpr')),
+                            'stthpr':sanitize_numeric(item.get('stthpr')),
+                            'stcypr':sanitize_numeric(item.get('stcypr')),
+                            'stcnpr':sanitize_numeric(item.get('stcnpr')),
+                            'year':sanitize_numeric(item.get('year')), 
                         }
                     )
 
