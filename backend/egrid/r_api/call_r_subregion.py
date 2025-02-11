@@ -1,5 +1,5 @@
 import requests 
-from egrid.models import State, EgridSubrgn 
+from egrid.models import State, Subregion 
 import requests 
 import logging
 
@@ -12,7 +12,7 @@ def sanitize_numeric(value):
     except (ValueError, TypeError):
         return None  # Return None for invalid values
 
-def call_r_state():
+def call_r_subregion():
     try:
         response = requests.get("http://127.0.0.1:8001/subregion")
         if response.status_code == 200:
@@ -25,19 +25,19 @@ def call_r_state():
                     return {"success": False, "message": "R API returned no data."}
 
                 for item in subrgn_data:
-                    subregion, created = EgridSubrgn.objects.update_or_create(
-                        fipsst=item.get('fipsst'), 
+                    subregion, created = Subregion.objects.update_or_create(
+                        subrgn=item.get('subrgn'), 
                         defaults={
-                            'pstatabb':item.get('pstatabb'), 
+                            'srname':item.get('srname'), 
                         }
                     ) 
 
                     if created:
-                        logger.info(f"Inserted new plant: {subregion.fipsst}")
+                        logger.info(f"Inserted new plant: {subregion.subrgn}")
                     else:
-                        logger.info(f"Updated existing plant: {subregion.fipsst}")
+                        logger.info(f"Updated existing plant: {subregion.subrgn}")
 
-                return {"success": True, "message": "Data successfully inserted/updated in the EgridSubrgn table."}
+                return {"success": True, "message": "Data successfully inserted/updated in the Subregion table."}
             else:
                 logger.error(f"R API returned an error: {data.get('error')}")
                 return {"error": f"R API returned an error: {data.get('error')}"}

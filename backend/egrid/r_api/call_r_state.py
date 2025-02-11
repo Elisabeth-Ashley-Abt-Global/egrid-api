@@ -42,12 +42,7 @@ def call_r_state():
                             'pstatabb':item.get('pstatabb'), 
                         }
                     ) 
-
-                    if created:
-                        logger.info(f"Inserted new plant: {state.fipsst}")
-                    else:
-                        logger.info(f"Updated existing plant: {state.fipsst}")
-
+  
                     StateAnnualCombustion.objects.update_or_create(
                         fipsst=State.objects.get(fipsst=item.get('fipsst')),
                         defaults={

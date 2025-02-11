@@ -486,16 +486,15 @@ class StateAnnualCombustion(models.Model):
     class Meta:
         db_table = 'state_annual_combustion'
 
-class EgridSubrgn(models.Model): 
-    subrgn = models.CharField(primary_key=True, max_length=2, null=False, blank=False)
-    srname = models.CharField(max_length=2, null=False, blank=False)
+class Subregion(models.Model): 
+    subrgn = models.CharField(primary_key=True, max_length=2, null=False, blank=False, unique=True)
+    srname = models.CharField(max_length=255, null=False, blank=False)
      
-    
     def __str__(self):
         return self.name
 
     class Meta:
-        db_table = 'egrid_subrgn'
+        db_table = 'subregion'
 
 class StateEmissionRate(models.Model):
     id = models.AutoField(primary_key=True)
@@ -725,7 +724,7 @@ class StateResourceMix(models.Model):
 class SubrgnAnnualCombustion(models.Model): 
     id = models.AutoField(primary_key=True)
     subrgn_id = models.ForeignKey(
-                EgridSubrgn,
+                Subregion,
                 on_delete=models.CASCADE,  # Deletes SubrgnAnnualCombustion records if the related Plant is deleted
                 db_column='subrgn_id'          
             ) 
@@ -754,7 +753,7 @@ class SubrgnAnnualCombustion(models.Model):
 class SubrgnEmissionRate(models.Model): 
     id = models.AutoField(primary_key=True)
     subrgn_id = models.ForeignKey(
-                EgridSubrgn,
+                Subregion,
                 on_delete=models.CASCADE,  # Deletes SubrgnEmissionRate records if the related Plant is deleted
                 db_column='subrgn_id'          
             ) 
@@ -793,7 +792,7 @@ class SubrgnEmissionRate(models.Model):
 class SubrgnFuelTypeEmissionRate(models.Model):  
     id = models.AutoField(primary_key=True)
     subrgn_id = models.ForeignKey(
-                EgridSubrgn,
+                Subregion,
                 on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
                 db_column='subrgn_id'          
             ) 

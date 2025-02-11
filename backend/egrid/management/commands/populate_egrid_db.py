@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from egrid.r_api.call_r_subregion import call_r_subregion
 from egrid.r_api.call_r_plant import call_r_plant  # Import the function(s) you need
 from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
@@ -37,6 +38,8 @@ class Command(BaseCommand):
                 case 'state':
                     call_r_state()
 
+                case 'subregion':
+                    call_r_subregion() 
                 case _:
                    # call all of them
                     call_r_state()

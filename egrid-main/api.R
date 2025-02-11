@@ -63,7 +63,7 @@ function() {
 
 #* @get /subregion
 function() {
-  rds_file <- file.path(".", "data", "outputs", "subregion_file")
+  rds_file <- file.path(".", "data", "outputs", "subregion_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
