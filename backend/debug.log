@@ -1,0 +1,84 @@
+INFO 2025-02-11 11:32:52,894 autoreload Watching for file changes with StatReloader
+INFO 2025-02-11 11:33:59,148 populate_egrid_db Populating the state table...
+DEBUG 2025-02-11 11:33:59,148 call_r_state calling r state
+INFO 2025-02-11 11:33:59,270 call_r_state Updated existing plant: 02
+ERROR 2025-02-11 11:33:59,293 call_r_state Error while processing R API data: Invalid field name(s) for model StateNonBaseloadEmissionRate: 'stgenacl'.
+Traceback (most recent call last):
+  File "C:\Users\AshleyE\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\db\models\query.py", line 948, in get_or_create
+    return self.get(**kwargs), False
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AshleyE\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\db\models\query.py", line 649, in get
+    raise self.model.DoesNotExist(
+egrid.models.StateNonBaseloadEmissionRate.DoesNotExist: StateNonBaseloadEmissionRate matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\AshleyE\Desktop\Clients\EPA\egrid-api-repo\egrid-api\backend\egrid\r_api\call_r_state.py", line 192, in call_r_state
+    StateNonBaseloadEmissionRate.objects.update_or_create(
+  File "C:\Users\AshleyE\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AshleyE\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\db\models\query.py", line 986, in update_or_create
+    obj, created = self.select_for_update().get_or_create(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AshleyE\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\db\models\query.py", line 950, in get_or_create
+    params = self._extract_model_params(defaults, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\AshleyE\AppData\Local\Programs\Python\Python312\Lib\site-packages\django\db\models\query.py", line 1039, in _extract_model_params
+    raise exceptions.FieldError(
+django.core.exceptions.FieldError: Invalid field name(s) for model StateNonBaseloadEmissionRate: 'stgenacl'.
+INFO 2025-02-11 11:35:11,969 populate_egrid_db Populating the state table...
+DEBUG 2025-02-11 11:35:11,969 call_r_state calling r state
+INFO 2025-02-11 11:35:12,171 call_r_state Updated existing plant: 02
+INFO 2025-02-11 11:35:12,193 call_r_state Updated existing plant: 01
+INFO 2025-02-11 11:35:12,207 call_r_state Updated existing plant: 05
+INFO 2025-02-11 11:35:12,218 call_r_state Updated existing plant: 04
+INFO 2025-02-11 11:35:12,230 call_r_state Updated existing plant: 06
+INFO 2025-02-11 11:35:12,243 call_r_state Updated existing plant: 08
+INFO 2025-02-11 11:35:12,255 call_r_state Updated existing plant: 09
+INFO 2025-02-11 11:35:12,269 call_r_state Updated existing plant: 11
+INFO 2025-02-11 11:35:12,285 call_r_state Updated existing plant: 10
+INFO 2025-02-11 11:35:12,300 call_r_state Updated existing plant: 12
+INFO 2025-02-11 11:35:12,314 call_r_state Updated existing plant: 13
+INFO 2025-02-11 11:35:12,331 call_r_state Updated existing plant: 15
+INFO 2025-02-11 11:35:12,348 call_r_state Updated existing plant: 19
+INFO 2025-02-11 11:35:12,368 call_r_state Updated existing plant: 16
+INFO 2025-02-11 11:35:12,388 call_r_state Updated existing plant: 17
+INFO 2025-02-11 11:35:12,407 call_r_state Updated existing plant: 18
+INFO 2025-02-11 11:35:12,424 call_r_state Updated existing plant: 20
+INFO 2025-02-11 11:35:12,440 call_r_state Updated existing plant: 21
+INFO 2025-02-11 11:35:12,452 call_r_state Updated existing plant: 22
+INFO 2025-02-11 11:35:12,465 call_r_state Updated existing plant: 25
+INFO 2025-02-11 11:35:12,480 call_r_state Updated existing plant: 24
+INFO 2025-02-11 11:35:12,500 call_r_state Updated existing plant: 23
+INFO 2025-02-11 11:35:12,519 call_r_state Updated existing plant: 26
+INFO 2025-02-11 11:35:12,537 call_r_state Updated existing plant: 27
+INFO 2025-02-11 11:35:12,558 call_r_state Updated existing plant: 29
+INFO 2025-02-11 11:35:12,575 call_r_state Updated existing plant: 28
+INFO 2025-02-11 11:35:12,593 call_r_state Updated existing plant: 30
+INFO 2025-02-11 11:35:12,606 call_r_state Updated existing plant: 37
+INFO 2025-02-11 11:35:12,621 call_r_state Updated existing plant: 38
+INFO 2025-02-11 11:35:12,636 call_r_state Updated existing plant: 31
+INFO 2025-02-11 11:35:12,647 call_r_state Updated existing plant: 33
+INFO 2025-02-11 11:35:12,660 call_r_state Updated existing plant: 34
+INFO 2025-02-11 11:35:12,674 call_r_state Updated existing plant: 35
+INFO 2025-02-11 11:35:12,685 call_r_state Updated existing plant: 32
+INFO 2025-02-11 11:35:12,695 call_r_state Updated existing plant: 36
+INFO 2025-02-11 11:35:12,706 call_r_state Updated existing plant: 39
+INFO 2025-02-11 11:35:12,716 call_r_state Updated existing plant: 40
+INFO 2025-02-11 11:35:12,728 call_r_state Updated existing plant: 41
+INFO 2025-02-11 11:35:12,740 call_r_state Updated existing plant: 42
+INFO 2025-02-11 11:35:12,751 call_r_state Updated existing plant: 72
+INFO 2025-02-11 11:35:12,765 call_r_state Updated existing plant: 44
+INFO 2025-02-11 11:35:12,776 call_r_state Updated existing plant: 45
+INFO 2025-02-11 11:35:12,786 call_r_state Updated existing plant: 46
+INFO 2025-02-11 11:35:12,798 call_r_state Updated existing plant: 47
+INFO 2025-02-11 11:35:12,811 call_r_state Updated existing plant: 48
+INFO 2025-02-11 11:35:12,824 call_r_state Updated existing plant: 49
+INFO 2025-02-11 11:35:12,837 call_r_state Updated existing plant: 51
+INFO 2025-02-11 11:35:12,850 call_r_state Updated existing plant: 50
+INFO 2025-02-11 11:35:12,864 call_r_state Updated existing plant: 53
+INFO 2025-02-11 11:35:12,877 call_r_state Updated existing plant: 55
+INFO 2025-02-11 11:35:12,889 call_r_state Updated existing plant: 54
+INFO 2025-02-11 11:35:12,900 call_r_state Updated existing plant: 56

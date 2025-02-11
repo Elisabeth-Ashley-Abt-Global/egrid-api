@@ -191,8 +191,7 @@ def call_r_state():
 
                     StateNonBaseloadEmissionRate.objects.update_or_create(
                         fipsst=State.objects.get(fipsst=item.get('fipsst')),
-                        defaults={ 
-                            'stgenacl':sanitize_numeric(item.get('stgenacl')),
+                        defaults={  
                             'stnbnox':sanitize_numeric(item.get('stnbnox')),
                             'stnbnxo':sanitize_numeric(item.get('stnbnxo')),
                             'stnbso2':sanitize_numeric(item.get('stnbso2')),
