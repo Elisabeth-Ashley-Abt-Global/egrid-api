@@ -487,7 +487,7 @@ class StateAnnualCombustion(models.Model):
         db_table = 'state_annual_combustion'
 
 class Subregion(models.Model): 
-    subrgn = models.CharField(primary_key=True, max_length=2, null=False, blank=False, unique=True)
+    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
     srname = models.CharField(max_length=255, null=False, blank=False)
      
     def __str__(self):
