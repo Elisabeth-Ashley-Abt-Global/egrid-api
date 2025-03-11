@@ -73,6 +73,18 @@ function() {
 }
 
 
+#* @get /unit
+function() {
+  rds_file <- file.path(".", "data", "outputs", "unit_file.RDS")
+  tryCatch({
+    ba_data <- readRDS(rds_file)
+    list(success = TRUE, data = ba_data)
+  }, error = function(e) {
+    list(success = FALSE, error = e$message)
+  })
+}
+
+
 #* @post /process
 #* @param input_data:string
 function(input_data) {

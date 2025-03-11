@@ -143,11 +143,7 @@ def call_r_subregion():
                             'srfshgr':sanitize_numeric(item.get('srfshgr')),
                             'year':sanitize_numeric(item.get('year'))
                         }
-                    )
-                    # if created:
-                    #     logger.info(f"Inserted new plant: {subregion.subrgn}")
-                    # else:
-                    #     logger.info(f"Updated existing plant: {subregion.subrgn}")
+                    ) 
 
                 return {"success": True, "message": "Data successfully inserted/updated in the Subregion table."}
             else:

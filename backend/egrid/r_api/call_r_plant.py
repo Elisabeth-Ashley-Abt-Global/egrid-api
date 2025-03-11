@@ -44,8 +44,7 @@ def call_r_plant():
                             'numgen': item.get('numgen'),
                             'plprmfl': item.get('plprmfl'),
                             'plfuelct': item.get('plfuelct'),
-                            'coalflagind': item.get('coalflagind'),
-                            'subrgn_id': item.get('subrgn_id'),
+                            'coalflagind': item.get('coalflagind'), 
                             'year': item.get('year')
                         }
                     )

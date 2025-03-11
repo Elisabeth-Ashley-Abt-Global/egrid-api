@@ -61,7 +61,7 @@ class Plant(models.Model):
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
     coalflagind = models.CharField(max_length=1000, null=True, blank=True)
     subrgn = models.CharField(null=True, blank=True, max_length=4)
-    year = models.IntegerField(null=True, blank=True)
+    year = models.IntegerField(null=True, blank=True) # year should not be in here
     
     def __str__(self):
         return self.name
@@ -859,6 +859,7 @@ class SubrgnFuelTypeEmissionRate(models.Model):
     class Meta:
         db_table = 'subrgn_fuel_type_emission_rate'
 
+# Got to go back to this
 class Utility(models.Model):
     utlsrvid = models.IntegerField(primary_key=True, unique=True)
     utlsrvnm = models.CharField(max_length=500, null=False, blank=False)
@@ -868,3 +869,32 @@ class Utility(models.Model):
 
     class Meta:
         db_table = 'utility'
+
+
+# Tables for Unit
+# Table for the fields that do not change year to year
+class Unit(models.Model): 
+    id = models.AutoField(primary_key=True)
+    unitid = models.CharField(max_length=100, null=False, blank=False)
+    orispl = models.ForeignKey(
+        Plant,
+        on_delete=models.CASCADE,  # Deletes Unit records if the related Plant is deleted
+        db_column='orispl'          
+    ) 
+    prmvr = models.CharField(max_length=2, null=True, blank=True) 
+    untopst = models.CharField(max_length=2, null=True, blank=True) 
+    capdflag = models.CharField(max_length=50, null=True, blank=True)
+    prgcode = models.CharField(max_length=4000, null=True, blank=True)
+    botfirty = models.CharField(max_length=255, null=True, blank=True)
+    numgen = models.IntegerField(null=True, blank=True)
+    fuelu1 = models.CharField(max_length=6, null=True, blank=True)
+    hrsop = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.unitid} - {self.orispl} - {self.prmvr}"
+
+    class Meta:
+        db_table = "unit"
+        constraints = [
+            models.UniqueConstraint(fields=["unitid", "orispl", "prmvr"], name="unit_composite_pk")
+        ]

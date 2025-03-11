@@ -4,7 +4,8 @@ from egrid.r_api.call_r_plant import call_r_plant  # Import the function(s) you 
 from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
 from egrid.r_api.call_r_nerc import call_r_nerc
-from egrid.r_api.call_r_state import call_r_state
+from egrid.r_api.call_r_state import call_r_state 
+from egrid.r_api.call_r_unit import call_r_unit
 
 # from egrid.logic.queries.plant_queries import create_or_update_plant
 import logging
@@ -40,9 +41,11 @@ class Command(BaseCommand):
 
                 case 'subregion':
                     call_r_subregion() 
+                case 'unit': 
+                   call_r_unit()
                 case _:
                    # call all of them
-                    call_r_state()
+                    call_r_unit()
                     # populate_balancing_auth_data()
                     # populate_generator_data()
                     # call_r_nerc()
