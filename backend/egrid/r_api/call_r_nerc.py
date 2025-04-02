@@ -29,15 +29,15 @@ def call_r_nerc():
             try:
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    conn.execute(text("truncate table plant cascade;"))  
+                    conn.execute(text("truncate table nerc cascade;"))  
                     # result = conn.execute(text("SELECT COUNT(*) FROM plant;"))
                    
                     trans.commit() 
-                df.to_sql('plant', con=engine, if_exists='append', index=False)
-                print('Success inserting plant data.')
-                return {"success": True, "message": "Data successfully inserted into the Generator table."}
+                df.to_sql('nerc', con=engine, if_exists='append', index=False)
+                print('Success inserting nerc data.')
+                return {"success": True, "message": "Data successfully inserted into the NERC table."}
             except Exception as e:
-                print('Error inserting plant data.', e)
+                print('Error inserting nerc data.', e)
                 return {"error": str(e)}
               
     except Exception as e:
