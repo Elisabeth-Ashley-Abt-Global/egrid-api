@@ -42,14 +42,14 @@ class BAAnnualCombustion(models.Model):
         return self.name
 
 class Plant(models.Model):
-    seqplt = models.IntegerField(null=True, blank=True)
+    sequnt = models.IntegerField(null=True, blank=True) # seqplt
     orispl = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
     pstatabb = models.CharField(max_length=1000, null=True, blank=True)
     fipsst = models.CharField(max_length=1000, null=True, blank=True)  # State Id
-    plant_name = models.CharField(max_length=1000, null=True, blank=True)
+    pname = models.CharField(max_length=1000, null=True, blank=True)
     oprcode = models.IntegerField(null=True, blank=True)
     utlsrvid = models.IntegerField(null=True, blank=True)
-    sector_id = models.CharField(max_length=1000, null=True, blank=True)
+    sector = models.CharField(max_length=1000, null=True, blank=True)
     bacode = models.CharField(max_length=1000, null=True, blank=True)
     nerc = models.CharField(max_length=1000, null=True, blank=True)
     fipscnty = models.IntegerField(null=True, blank=True)
@@ -59,9 +59,8 @@ class Plant(models.Model):
     numgen = models.IntegerField(null=True, blank=True)
     plprmfl = models.CharField(max_length=1000, null=True, blank=True)
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
-    coalflagind = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn = models.CharField(null=True, blank=True, max_length=4)
-    year = models.IntegerField(null=True, blank=True) # year should not be in here
+    coalflag = models.CharField(max_length=1000, null=True, blank=True)
+    subrgn = models.CharField(null=True, blank=True, max_length=4) 
     
     def __str__(self):
         return self.name
@@ -304,11 +303,12 @@ class County(models.Model):
 class Generator(models.Model):
     seqgen = models.FloatField(null=True, blank=True) 
     genid = models.CharField(null=True, blank=True) 
-    orispl = models.ForeignKey(
-                Plant,
-                on_delete=models.CASCADE,  # Deletes Generator records if the related Plant is deleted
-                db_column='orispl'          
-            )
+    # orispl = models.ForeignKey(
+    #             Plant,
+    #             on_delete=models.CASCADE,  # Deletes Generator records if the related Plant is deleted
+    #             db_column='orispl'          
+    #         )
+    orispl = models.IntegerField(null=False, blank=False, unique=False)  
     # numblr   = models.FloatField(null=True, blank=True)
     # genstat  = models.CharField(max_length=500, null=True, blank=True)
     # prmvr    = models.CharField(max_length=500, null=True, blank=True)
@@ -327,9 +327,7 @@ class Generator(models.Model):
 
     class Meta:
         db_table = 'generator'
-        constraints = [
-            models.UniqueConstraint(fields=['genid', 'orispl'], name='unique_genid_orispl')
-        ]
+    
 
 class NercRegion(models.Model):
     nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
@@ -888,8 +886,8 @@ class Unit(models.Model):
     botfirty = models.CharField(max_length=255, null=True, blank=True)
     numgen = models.IntegerField(null=True, blank=True)
     fuelu1 = models.CharField(max_length=6, null=True, blank=True)
-    hrsop = models.FloatField(null=True, blank=True)
-
+    hrsop = models.FloatField(null=True, blank=True) 
+    
     def __str__(self):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
 
