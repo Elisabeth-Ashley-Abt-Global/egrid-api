@@ -47,18 +47,20 @@ def populate_balancing_auth_data():
              
             # BaEmissionRate
             try: 
-                baemissionrate = df[['bacode','banoxrta','banoxrto','baso2rta','baco2rta','bach4rta' ]] #,'banoxrto','baso2rta','baco2rta','bach4rta','ban2orta' ,'bac2erta','bahgrta','banoxra','banoxro','baso2ra','baco2ra','bach4ra','ban2ora','bac2era','bahgra' ,'banoxcrt','banoxcro','baso2crt','baco2crt','bach4crt','ban2ocrt','bac2ecrt','bahgcrt' ,'year'
+                baemissionrate = df[['bacode','banoxrta','banoxrto','baso2rta','baco2rta','bach4rta', 'ban2orta' ,'bac2erta','bahgrta','banoxra',
+                                     'banoxro','baso2ra', 'baco2ra','bach4ra','ban2ora','bac2era','bahgra','banoxcrt','banoxcro','baso2crt','baco2crt', 'bach4crt', 'ban2ocrt', 'bahgcrt', 'year']] # field:  'bac2ecrt' is failing
+                baemissionrate = baemissionrate.copy()
+                baemissionrate.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception:
-                print('Error in baemissionrate')
+                print('Error in BaEmissionRate dataframe')
+
+            # try: 
+            #     bafueltypeemissionrate = [['bacode' ]] #,'bagnoxrt','bafsnxrt','bacnxort','baonxort','bagnxort','bafsnort','bacso2rt','baoso2rt','bagso2rt','bafss2rt','bacco2rt','baoco2rt','bagco2rt','bafsc2rt','bacch4rt','baoch4rt','bagch4rt','bafch4rt','bacn2ort','baon2ort','bagn2ort','bafn2ort','bacc2ert','baoc2ert','bagc2ert','bachgrt' ,'bafshgrt' ,'bacnoxr','baonoxr','bagnoxr','bafsnxr','bacnxor','baonxor','bagnxor','bafsnor','bacso2r','baoso2r','bagso2r','bafss2r','bacco2r','baoco2r','bagco2r','bafsc2r','bacch4r','baoch4r','bagch4r','bafch4r','bacn2or','baon2or','bagn2or','bafn2or','bacc2er','baoc2er','bagc2er','bafsc2er' ,'bachgr' ,'bafshgr' ,'year'
+            #     bafueltypeemissionrate = bafueltypeemissionrate.copy()
+            #     bafueltypeemissionrate.replace({"--": None, "N/A": None, "": None}, inplace=True)
+            # except Exception:
+            #     print('Error in BaFuelTypeEmissionRate dataframe')
             
-            baemissionrate = baemissionrate.copy()
-            baemissionrate.replace({"--": None, "N/A": None, "": None}, inplace=True)
-            print('test')
-            # BaFuelTypeEmissionRate
-            # bafueltypeemissionrate = [['bacode','bacnoxrt','baonoxrt','bagnoxrt','bafsnxrt','bacnxort','baonxort','bagnxort','bafsnort','bacso2rt','baoso2rt','bagso2rt','bafss2rt','bacco2rt','baoco2rt','bagco2rt','bafsc2rt','bacch4rt','baoch4rt','bagch4rt','bafch4rt','bacn2ort','baon2ort','bagn2ort','bafn2ort','bacc2ert','baoc2ert','bagc2ert','bachgrt' ,'bafshgrt' ,'bacnoxr','baonoxr','bagnoxr','bafsnxr','bacnxor','baonxor','bagnxor','bafsnor','bacso2r','baoso2r','bagso2r','bafss2r','bacco2r','baoco2r','bagco2r','bafsc2r','bacch4r','baoch4r','bagch4r','bafch4r','bacn2or','baon2or','bagn2or','bafn2or','bacc2er','baoc2er','bagc2er','bafsc2er' ,'bachgr' ,'bafshgr' ,'year']]
-            # bafueltypeemissionrate = bafueltypeemissionrate.copy()
-            # bafueltypeemissionrate.replace({"--": None, "N/A": None, "": None}, inplace=True)
-            # print('test')
             try:
                 with engine.connect() as conn:
                     trans = conn.begin()
@@ -71,16 +73,16 @@ def populate_balancing_auth_data():
 
                 ba_df.to_sql('balancing_authority', con=engine, if_exists='append', index=False)
                 baannualcombustion.to_sql('ba_annual_combustion', con=engine, if_exists='append', index=False)
-                print('Success inserting baannualcombustion.')    
+                print('Success inserting baannualcombustion.')  
+
                 baemissionrate.to_sql('ba_emission_rate', con=engine, if_exists='append', index=False)    
                 print('Success inserting baemissionrate.')    
 
                 # bafueltypeemissionrate.to_sql('ba_fuel_type_emission_rate', con=engine, if_exists='append', index=False)    
-
-                print('Success inserting   data.')
+                # print('Success inserting ba_fuel_type_emission_rate  data.')
                 
             except Exception as e:
-                print('Error inserting plant data.', e)
+                print('Error inserting balancing authority data.', e)
                 return {"error": str(e)}  
 
         

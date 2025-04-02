@@ -5,13 +5,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text 
 from django.conf import settings
 logger = logging.getLogger('egrid')
-
-def sanitize_numeric(value):
-    try:
-        return float(value)  # Convert to a float or int
-    except (ValueError, TypeError):
-        return None  # Return None for invalid values
-
+  
 def call_r_plant():
 
     engine = create_engine(
@@ -27,17 +21,27 @@ def call_r_plant():
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
             df = pd.DataFrame(plant_data)
-        
+            print(df['utlsrvid'].dtype)
             df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag','sequnt']] 
          
             try:
-                with engine.connect() as conn:
-                    trans = conn.begin()
-                    conn.execute(text("truncate table plant cascade;"))  
-                    # result = conn.execute(text("SELECT COUNT(*) FROM plant;"))
-                   
-                    trans.commit() 
-                df.to_sql('plant', con=engine, if_exists='append', index=False)
+                # storing the data in a temporary upload table 
+                # df.to_sql('plant_temp', con=engine, if_exists='append', index=False)
+
+                # with engine.connect() as conn:
+                #     trans = conn.begin()
+                #     conn.execute(text("""update plant set pstatabb = plant_temp.pstatabb, 
+                #     fipsst = plant_temp.fipsst, utlsrvid = plant_temp.utlsrvid,
+                #     bacode = plant_temp.bacode, nerc = plant_temp.nerc, fipscnty = plant_temp.fipscnty, 
+                #     lat = plant_temp.lat, lon = plant_temp.lon, numunt = plant_temp.numunt, 
+                #     numgen = plant_temp.numgen, plprmfl = plant_temp.plprmfl, plfuelct = plant_temp.plfuelct, 
+                #     oprcode = plant_temp.oprcode, sector = plant_temp.sector, pname = plant_temp.pname, 
+                #     coalflag = plant_temp.coalflag, sequnt = plant_temp.sequnt 
+                #     from plant_temp  
+                #     where plant.orispl = plant_temp.orispl;
+                #     """))
+                #     trans.commit() 
+  
                 print('Success inserting plant data.')
                 return {"success": True, "message": "Data successfully inserted into the Generator table."}
             except Exception as e:
