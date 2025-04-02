@@ -33,8 +33,7 @@ def call_r_plant():
             try:
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    conn.execute(text("truncate table plant cascade;")) 
-                  
+                    conn.execute(text("truncate table plant cascade;"))  
                     # result = conn.execute(text("SELECT COUNT(*) FROM plant;"))
                    
                     trans.commit() 

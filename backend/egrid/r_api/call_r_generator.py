@@ -4,7 +4,7 @@ from egrid.models import Generator, Plant
 import logging 
 import pandas as pd
 from django.db import connection
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger('egrid')
  
@@ -27,10 +27,15 @@ def populate_generator_data():
         if response.status_code == 200 and data.get('success'):
             gen_data = data.get('data', [])
             df = pd.DataFrame(gen_data)
-            print('df', df.head()) 
+            # print('df', df.head()) # for debugging
             df = df[['seqgen', 'genid', 'orispl']] 
            
             try: 
+                with engine.connect() as conn:
+                    trans = conn.begin()
+                    conn.execute(text("truncate table generator cascade;")) 
+                    trans.commit() 
+
                 df.to_sql('generator', con=engine, if_exists='append', index=False)
                 print('success')
                 return {"success": True, "message": "Data successfully inserted into the Generator table."}
