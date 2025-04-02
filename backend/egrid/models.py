@@ -69,34 +69,7 @@ class Plant(models.Model):
     class Meta:
         db_table = 'plant'
 
-# temporary table for upload
-class PlantTemp(models.Model):
-    sequnt = models.IntegerField(null=True, blank=True) # seqplt
-    orispl = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
-    pstatabb = models.CharField(max_length=1000, null=True, blank=True)
-    fipsst = models.CharField(max_length=1000, null=True, blank=True)  # State Id
-    pname = models.CharField(max_length=1000, null=True, blank=True)
-    oprcode = models.IntegerField(null=True, blank=True)
-    utlsrvid = models.IntegerField(null=True, blank=True)
-    sector = models.CharField(max_length=1000, null=True, blank=True)
-    bacode = models.CharField(max_length=1000, null=True, blank=True)
-    nerc = models.CharField(max_length=1000, null=True, blank=True)
-    fipscnty = models.IntegerField(null=True, blank=True)
-    lat = models.FloatField(null=True, blank=True)
-    lon = models.FloatField(null=True, blank=True)
-    numunt = models.IntegerField(null=True, blank=True)
-    numgen = models.IntegerField(null=True, blank=True)
-    plprmfl = models.CharField(max_length=1000, null=True, blank=True)
-    plfuelct = models.CharField(max_length=1000, null=True, blank=True)
-    coalflag = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn = models.CharField(null=True, blank=True, max_length=4) 
-    
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'plant_temp'
-
+ 
 class BaEmissionRate(models.Model):
     id     =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(

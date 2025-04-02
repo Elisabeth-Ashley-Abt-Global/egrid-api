@@ -20,36 +20,54 @@ def call_r_plant():
      
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
-            df = pd.DataFrame(plant_data)
-            print(df['utlsrvid'].dtype)
-            df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag','sequnt']] 
+            df = pd.DataFrame(plant_data) 
+            df = df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'sequnt']] 
             df = df.copy()
             df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
              
-            columns_to_cast = [ 'orispl', 'utlsrvid', 'fipscnty',  'numunt', 'numgen',  'oprcode' ]
+            columns_to_cast = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'sequnt' ]
 
             #'lat', 'lon',
             for col in columns_to_cast:
-                df[col] = df[col].fillna(0).astype(int)
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
 
             try:
                 # storing the data in a temporary upload table 
-                df.to_sql('plant_temp', con=engine, if_exists='append', index=False)
+                df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    conn.execute(text("""update plant set pstatabb = plant_temp.pstatabb, 
-                    fipsst = plant_temp.fipsst, utlsrvid = plant_temp.utlsrvid,
-                    bacode = plant_temp.bacode, nerc = plant_temp.nerc, fipscnty = plant_temp.fipscnty, 
-                    lat = plant_temp.lat, lon = plant_temp.lon, numunt = plant_temp.numunt, 
-                    numgen = plant_temp.numgen, plprmfl = plant_temp.plprmfl, plfuelct = plant_temp.plfuelct, 
-                    oprcode = plant_temp.oprcode, sector = plant_temp.sector, pname = plant_temp.pname, 
-                    coalflag = plant_temp.coalflag, sequnt = plant_temp.sequnt 
-                    from plant_temp  
-                    where plant.orispl = plant_temp.orispl;
-                    """))
 
-                    conn.execute(text("truncate table plant_temp;"))
+                    plant_cnt = conn.execute(text("select count(*) from plant;")).scalar()
+                    print('plant_cnt', plant_cnt )
+
+                    if plant_cnt == 0:
+                        # conn.execute("insert into plant select * from plant_temp;")
+                        conn.execute(text("""insert into plant (
+                                        pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
+                                     fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
+                                     oprcode, sector, pname, coalflag, sequnt
+                                     ) select pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
+                                     fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
+                                     oprcode, sector, pname, coalflag, sequnt from plant_temp;
+                                     """))
+
+                    else:
+                        conn.execute(text("""update plant set pstatabb = plant_temp.pstatabb, 
+                        fipsst = plant_temp.fipsst, utlsrvid = plant_temp.utlsrvid,
+                        bacode = plant_temp.bacode, nerc = plant_temp.nerc, fipscnty = plant_temp.fipscnty, 
+                        lat = plant_temp.lat, lon = plant_temp.lon, numunt = plant_temp.numunt, 
+                        numgen = plant_temp.numgen, plprmfl = plant_temp.plprmfl, plfuelct = plant_temp.plfuelct, 
+                        oprcode = plant_temp.oprcode, sector = plant_temp.sector, pname = plant_temp.pname, 
+                        coalflag = plant_temp.coalflag, sequnt = plant_temp.sequnt 
+                        from plant_temp  
+                        where plant.orispl = plant_temp.orispl;
+                        """))
+
+                        # conn.execute(text("truncate table plant_temp;"))
+                    # conn.execute(text("drop table plant_temp;"))
+
 
                     trans.commit() 
   
