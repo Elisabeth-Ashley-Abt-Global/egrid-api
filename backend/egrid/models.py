@@ -1,7 +1,7 @@
 from django.db import models
 
 class BalancingAuthority(models.Model): 
-    bacode = models.CharField(max_length=7, primary_key=True, unique=True)  
+    bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
     baname = models.CharField(max_length=255)   
 
     class Meta:
@@ -12,10 +12,11 @@ class BalancingAuthority(models.Model):
     
 class BAAnnualCombustion(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing ID
+    # bacode = models.CharField(max_length=20, null=False, blank=False)  # BA Code
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,  # Deletes BAAnnualCombustion records if the related BalancingAuthority is deleted
-        db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
+        on_delete=models.CASCADE,
+        db_column='bacode'
     )
     bahtian = models.FloatField(null=True, blank=True, db_comment='BA annual heat input from combustion (MMBtu)')  # BA annual heat input (MMBtu)
     bahtioz = models.FloatField(null=True, blank=True)
@@ -302,12 +303,7 @@ class County(models.Model):
  
 class Generator(models.Model):
     seqgen = models.FloatField(null=True, blank=True) 
-    genid = models.CharField(null=True, blank=True) 
-    # orispl = models.ForeignKey(
-    #             Plant,
-    #             on_delete=models.CASCADE,  # Deletes Generator records if the related Plant is deleted
-    #             db_column='orispl'          
-    #         )
+    genid = models.CharField(null=True, blank=True)  
     orispl = models.IntegerField(null=False, blank=False, unique=False)  
     # numblr   = models.FloatField(null=True, blank=True)
     # genstat  = models.CharField(max_length=500, null=True, blank=True)
