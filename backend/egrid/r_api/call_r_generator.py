@@ -9,20 +9,13 @@ from sqlalchemy import create_engine, text
 logger = logging.getLogger('egrid')
  
 from django.conf import settings
- 
-
-def populate_generator_data():
+  
+def populate_generator_data(engine=None, api_url=None):
     print('populate_generator_data')
     logger.debug("*populate_generator_data")
-    engine = create_engine(
-    f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
-    f"{settings.DATABASES['default']['HOST']}:{settings.DATABASES['default']['PORT']}/"
-    f"{settings.DATABASES['default']['NAME']}"
-    )   
-
-    print('engine', engine)
+     
     try:
-        response = requests.get("http://127.0.0.1:8001/generator")
+        response = requests.get(f"{api_url}generator")
         data = response.json()  
         if response.status_code == 200 and data.get('success'):
             gen_data = data.get('data', [])

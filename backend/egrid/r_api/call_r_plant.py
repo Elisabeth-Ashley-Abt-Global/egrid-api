@@ -2,24 +2,23 @@ from egrid.models import Plant
 import requests
 import logging
 import pandas as pd 
-from sqlalchemy import create_engine, text 
-from django.conf import settings
+from sqlalchemy import text  
 logger = logging.getLogger('egrid')
   
-def call_r_plant(engine=None):
-
-    try:
-        response = requests.get("http://127.0.0.1:8001/plant")
+def call_r_plant(engine=None, api_url=None): 
+    try: 
+        response = requests.get(f"{api_url}plant")
         data = response.json() 
+        # print('data', data)
        
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
             plant_df = pd.DataFrame(plant_data) 
-            plant_df = plant_df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'sequnt']] 
+            plant_df = plant_df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt']] 
             plant_df = plant_df.copy()
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
              
-            cast_to_int = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'sequnt' ]
+            cast_to_int = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'seqplt' ]
             cast_to_float = ['lat', 'lon'] 
  
             for col in cast_to_int:
@@ -42,10 +41,10 @@ def call_r_plant(engine=None):
                         conn.execute(text("""insert into plant (
                                         pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
                                      fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
-                                     oprcode, sector, pname, coalflag, sequnt
+                                     oprcode, sector, pname, coalflag, seqplt
                                      ) select pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
                                      fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
-                                     oprcode, sector, pname, coalflag, sequnt from plant_temp;
+                                     oprcode, sector, pname, coalflag, seqplt from plant_temp;
                                      """))
 
                     else:
@@ -55,7 +54,7 @@ def call_r_plant(engine=None):
                         lat = plant_temp.lat, lon = plant_temp.lon, numunt = plant_temp.numunt, 
                         numgen = plant_temp.numgen, plprmfl = plant_temp.plprmfl, plfuelct = plant_temp.plfuelct, 
                         oprcode = plant_temp.oprcode, sector = plant_temp.sector, pname = plant_temp.pname, 
-                        coalflag = plant_temp.coalflag, sequnt = plant_temp.sequnt 
+                        coalflag = plant_temp.coalflag, seqplt = plant_temp.seqplt 
                         from plant_temp  
                         where plant.orispl = plant_temp.orispl;
                         """))

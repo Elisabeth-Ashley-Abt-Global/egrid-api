@@ -12,6 +12,7 @@ from django.conf import settings
 import logging
 
 logger = logging.getLogger('egrid')
+api_url = 'http://127.0.0.1:8001/'
 
 engine = create_engine(
     f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
@@ -32,13 +33,13 @@ class Command(BaseCommand):
         try:
            match table_name:
                 case 'plant':
-                   call_r_plant(engine) # Fetch plant data from the R API
+                   call_r_plant(engine, api_url) # Fetch plant data from the R API
             
                 case 'balancing_authority':
                     populate_balancing_auth_data()  
 
                 case 'generator': 
-                    populate_generator_data()
+                    populate_generator_data(engine, api_url) # Fetch generator data from the R API
 
                 case 'nerc':
                     call_r_nerc() 

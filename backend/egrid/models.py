@@ -44,7 +44,7 @@ class BAAnnualCombustion(models.Model):
         return self.name
 
 class Plant(models.Model):
-    sequnt = models.IntegerField(null=True, blank=True) # seqplt
+    seqplt = models.IntegerField(null=True, blank=True) # seqplt
     orispl = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
     pstatabb = models.CharField(max_length=1000, null=True, blank=True)
     fipsst = models.CharField(max_length=1000, null=True, blank=True)  # State Id
