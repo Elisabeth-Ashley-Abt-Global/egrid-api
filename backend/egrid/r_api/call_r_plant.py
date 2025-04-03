@@ -17,7 +17,7 @@ def call_r_plant():
     try:
         response = requests.get("http://127.0.0.1:8001/plant")
         data = response.json() 
-     
+        print('data ', data)
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
             df = pd.DataFrame(plant_data) 
@@ -25,13 +25,15 @@ def call_r_plant():
             df = df.copy()
             df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
              
-            columns_to_cast = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'sequnt' ]
-
-            #'lat', 'lon',
-            for col in columns_to_cast:
+            cast_to_int = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'sequnt' ]
+            cast_to_float = ['lat', 'lon'] 
+ 
+            for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
 
-
+            for col in cast_to_float:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+ 
             try:
                 # storing the data in a temporary upload table 
                 df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
@@ -65,9 +67,8 @@ def call_r_plant():
                         where plant.orispl = plant_temp.orispl;
                         """))
 
-                        # conn.execute(text("truncate table plant_temp;"))
-                    # conn.execute(text("drop table plant_temp;"))
-
+                    conn.execute(text("truncate table plant_temp;"))
+                    conn.execute(text("drop table plant_temp;"))
 
                     trans.commit() 
   
