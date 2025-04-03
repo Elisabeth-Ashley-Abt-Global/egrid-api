@@ -6,46 +6,39 @@ from sqlalchemy import create_engine, text
 from django.conf import settings
 logger = logging.getLogger('egrid')
   
-def call_r_plant():
-
-    engine = create_engine(
-    f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
-    f"{settings.DATABASES['default']['HOST']}:{settings.DATABASES['default']['PORT']}/"
-    f"{settings.DATABASES['default']['NAME']}"
-    )   
+def call_r_plant(engine=None):
 
     try:
         response = requests.get("http://127.0.0.1:8001/plant")
         data = response.json() 
-        print('data ', data)
+       
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
-            df = pd.DataFrame(plant_data) 
-            df = df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'sequnt']] 
-            df = df.copy()
-            df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
+            plant_df = pd.DataFrame(plant_data) 
+            plant_df = plant_df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'sequnt']] 
+            plant_df = plant_df.copy()
+            plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
              
             cast_to_int = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'sequnt' ]
             cast_to_float = ['lat', 'lon'] 
  
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                plant_df[col] = pd.to_numeric(plant_df[col], errors='coerce').astype("Int64")
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                plant_df[col] = pd.to_numeric(plant_df[col], errors='coerce').astype(float)
  
             try:
                 # storing the data in a temporary upload table 
-                df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
+                plant_df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
 
                 with engine.connect() as conn:
                     trans = conn.begin()
 
                     plant_cnt = conn.execute(text("select count(*) from plant;")).scalar()
-                    print('plant_cnt', plant_cnt )
-
+                
                     if plant_cnt == 0:
-                        # conn.execute("insert into plant select * from plant_temp;")
+                  
                         conn.execute(text("""insert into plant (
                                         pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
                                      fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
