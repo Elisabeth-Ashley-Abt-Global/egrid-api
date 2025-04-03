@@ -11,29 +11,30 @@ class BalancingAuthority(models.Model):
     def __str__(self):
         return self.name
     
-class BAAnnualCombustion(models.Model):
+class BaAnnualCombustion(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing ID
     # bacode = models.CharField(max_length=20, null=False, blank=False)  # BA Code
     bacode = models.ForeignKey(
-        BalancingAuthority,
-        on_delete=models.CASCADE,
+        BalancingAuthority, 
+        on_delete=models.CASCADE, # Deletes BaAnnualCombustion records if the related BalancingAuthority is delet
         db_column='bacode'
     )
-    bahtian = models.FloatField(null=True, blank=True, db_comment='BA annual heat input from combustion (MMBtu)')  # BA annual heat input (MMBtu)
-    bahtioz = models.FloatField(null=True, blank=True)
-    bahtiant = models.FloatField(null=True, blank=True)
-    bahtiozt = models.FloatField(null=True, blank=True)
-    bangenan = models.FloatField(null=True, blank=True)
-    bangenoz = models.FloatField(null=True, blank=True)
-    bangennb = models.FloatField(null=True, blank=True)
-    banoxan = models.FloatField(null=True, blank=True)
-    banoxoz = models.FloatField(null=True, blank=True)
-    baso2an = models.FloatField(null=True, blank=True)
-    baco2an = models.FloatField(null=True, blank=True)
-    bach4an = models.FloatField(null=True, blank=True)
-    ban2oan = models.FloatField(null=True, blank=True)
-    baco2eqa = models.FloatField(null=True, blank=True)
-    bahgan = models.CharField(null=True, blank=True)  
+    banamepcap = models.FloatField(null=True, blank=True)
+    bahtian    = models.FloatField(null=True, blank=True, db_comment='BA annual heat input from combustion (MMBtu)')  # BA annual heat input (MMBtu)
+    bahtioz    = models.FloatField(null=True, blank=True)
+    bahtiant   = models.FloatField(null=True, blank=True)
+    bahtiozt   = models.FloatField(null=True, blank=True)
+    bangenan   = models.FloatField(null=True, blank=True)
+    bangenoz   = models.FloatField(null=True, blank=True)
+    bangennb   = models.FloatField(null=True, blank=True)
+    banoxan    = models.FloatField(null=True, blank=True)
+    banoxoz    = models.FloatField(null=True, blank=True)
+    baso2an    = models.FloatField(null=True, blank=True)
+    baco2an    = models.FloatField(null=True, blank=True)
+    bach4an    = models.FloatField(null=True, blank=True)
+    ban2oan    = models.FloatField(null=True, blank=True)
+    baco2eqa   = models.FloatField(null=True, blank=True)
+    bahgan     = models.CharField(null=True, blank=True)  
     # created_on = models.DateTimeField(auto_now_add=True)  # Automatically sets the field to the current timestamp only when the record is first created.
     # updated_on = models.DateTimeField(auto_now=True) # Automatically updates the field to the current timestamp every time the record is saved.
     year = models.IntegerField(null=True, blank=True)  # Year
@@ -78,7 +79,7 @@ class BaEmissionRate(models.Model):
     id     =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,  # Deletes BAAnnualCombustion records if the related BalancingAuthority is deleted
+        on_delete=models.CASCADE,  # Deletes BaEmissionRate records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'bacode'
     )
     banoxrta = models.FloatField(null=True, blank=True)
@@ -119,7 +120,7 @@ class BaFuelTypeEmissionRate(models.Model):
     id       =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,  # Deletes BAAnnualCombustion records if the related BalancingAuthority is deleted
+        on_delete=models.CASCADE,   # Deletes BaFuelTypeEmissionRate records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
     )
     bacnoxrt  = models.FloatField(blank=True, null=True)
@@ -194,7 +195,7 @@ class BaFuelTypeGeneration(models.Model):
     id =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,  # Deletes BAAnnualCombustion records if the related BalancingAuthority is deleted
+        on_delete=models.CASCADE,   # Deletes BaFuelTypeGeneration records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
     )
     bagenacl = models.FloatField(blank=True, null=True)
@@ -228,7 +229,7 @@ class BaNonBaseloadEmissionRate(models.Model):
     id       =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,  # Deletes BAAnnualCombustion records if the related BalancingAuthority is deleted
+        on_delete=models.CASCADE,   # Deletes BaNonBaseloadEmissionRate records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
     )
     banbnox  = models.FloatField(null=True, blank=True)
@@ -273,7 +274,7 @@ class BaResourceMix(models.Model):
     id       =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,  # Deletes BAAnnualCombustion records if the related BalancingAuthority is deleted
+        on_delete=models.CASCADE,   # Deletes BaResourceMix records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'bacode'
     )
     baclpr = models.FloatField(blank=True, null=True)
@@ -353,6 +354,7 @@ class Generation(models.Model):
 class NercRegion(models.Model):
     nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
     nerc_name = models.CharField(max_length=500, null=False, blank=False)
+    nrnamepcap = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -360,6 +362,262 @@ class NercRegion(models.Model):
     class Meta:
         db_table = 'nerc_region'
 
+class NercAnnualCombustion(models.Model): 
+    id = models.AutoField(primary_key=True)
+    nerc = models.ForeignKey(
+                NercRegion,
+                on_delete=models.CASCADE,  # Deletes NercAnnualCombustion records if the related Plant is deleted
+                db_column='nerc'          
+            ) 
+    nrnamepcap = models.FloatField(null=True, blank=True)
+    nrhtian   = models.FloatField(null=True, blank=True)
+    nrhtioz   = models.FloatField(null=True, blank=True)
+    nrhtiant  = models.FloatField(null=True, blank=True)
+    nrhtiozt  = models.FloatField(null=True, blank=True)
+    nrngenan  = models.FloatField(null=True, blank=True)
+    nrngenoz  = models.FloatField(null=True, blank=True)
+    nrngennb  = models.FloatField(null=True, blank=True)
+    nrnoxan   = models.FloatField(null=True, blank=True)
+    nrnoxoz   = models.FloatField(null=True, blank=True)
+    nrso2an   = models.FloatField(null=True, blank=True)
+    nrco2an   = models.FloatField(null=True, blank=True)
+    nrch4an   = models.FloatField(null=True, blank=True)
+    nrn2oan   = models.FloatField(null=True, blank=True)
+    nrco2eqa  = models.FloatField(null=True, blank=True)
+    nrhgan    = models.CharField(null=True, blank=True) 
+    year      = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_annual_combustion'
+
+class NercEmissionRate(models.Model): 
+    id = models.AutoField(primary_key=True)
+    nerc = models.ForeignKey(
+                NercRegion,
+                on_delete=models.CASCADE,  # Deletes NercEmissionRate records if the related Plant is deleted
+                db_column='nerc'          
+            ) 
+    nrnoxrta = models.FloatField(blank=True, null=True)
+    nrnoxrto = models.FloatField(blank=True, null=True)
+    nrso2rta = models.FloatField(blank=True, null=True)
+    nrco2rta = models.FloatField(blank=True, null=True)
+    nrch4rta = models.FloatField(blank=True, null=True)
+    nrn2orta = models.FloatField(blank=True, null=True)
+    nrc2erta = models.FloatField(blank=True, null=True)
+    nrhgrta  = models.CharField(blank=True, null=True)
+    nrnoxra  = models.FloatField(blank=True, null=True)
+    nrnoxro  = models.FloatField(blank=True, null=True)
+    nrso2ra  = models.FloatField(blank=True, null=True)
+    nrco2ra  = models.FloatField(blank=True, null=True)
+    nrch4ra  = models.FloatField(blank=True, null=True)
+    nrn2ora  = models.FloatField(blank=True, null=True)
+    nrc2era  = models.FloatField(blank=True, null=True)
+    nrhgra   = models.CharField(blank=True, null=True)
+    nrnoxcrt = models.FloatField(blank=True, null=True)
+    nrnoxcro = models.FloatField(blank=True, null=True)
+    nrso2crt = models.FloatField(blank=True, null=True)
+    nrco2crt = models.FloatField(blank=True, null=True)
+    nrch4crt = models.FloatField(blank=True, null=True)
+    nrn2ocrt = models.FloatField(blank=True, null=True)
+    nrc2ecrt = models.FloatField(blank=True, null=True)
+    nrhgcrt  = models.CharField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_emission_rate'
+  
+class NercFuelTypeEmissionRate(models.Model):  
+    id = models.AutoField(primary_key=True)
+    nerc = models.ForeignKey(
+                NercRegion,
+                on_delete=models.CASCADE,  # Deletes NercFuelTypeEmissionRate records if the related Plant is deleted
+                db_column='nerc'          
+            ) 
+    nrcnoxrt  = models.FloatField(blank=True, null=True)
+    nronoxrt  = models.FloatField(blank=True, null=True)
+    nrgnoxrt  = models.FloatField(blank=True, null=True)
+    nrfsnxrt  = models.FloatField(blank=True, null=True)
+    nrcnxort  = models.FloatField(blank=True, null=True)
+    nronxort  = models.FloatField(blank=True, null=True)
+    nrgnxort  = models.FloatField(blank=True, null=True)
+    nrfsnort  = models.FloatField(blank=True, null=True)
+    nrcso2rt  = models.FloatField(blank=True, null=True)
+    nroso2rt  = models.FloatField(blank=True, null=True)
+    nrgso2rt  = models.FloatField(blank=True, null=True)
+    nrfss2rt  = models.FloatField(blank=True, null=True)
+    nrcco2rt  = models.FloatField(blank=True, null=True)
+    nroco2rt  = models.FloatField(blank=True, null=True)
+    nrgco2rt  = models.FloatField(blank=True, null=True)
+    nrfsc2rt  = models.FloatField(blank=True, null=True)
+    nrcch4rt  = models.FloatField(blank=True, null=True)
+    nroch4rt  = models.FloatField(blank=True, null=True)
+    nrgch4rt  = models.FloatField(blank=True, null=True)
+    nrfch4rt  = models.FloatField(blank=True, null=True)
+    nrcn2ort  = models.FloatField(blank=True, null=True)
+    nron2ort  = models.FloatField(blank=True, null=True)
+    nrgn2ort  = models.FloatField(blank=True, null=True)
+    nrfn2ort  = models.FloatField(blank=True, null=True)
+    nrcc2ert  = models.FloatField(blank=True, null=True)
+    nroc2ert  = models.FloatField(blank=True, null=True)
+    nrgc2ert  = models.FloatField(blank=True, null=True)
+    nrfsc2ert = models.FloatField(blank=True, null=True)
+    nrchgrt   = models.CharField(blank=True, null=True)
+    nrfshgrt  = models.CharField(blank=True, null=True)
+    nrcnoxr   = models.FloatField(blank=True, null=True)
+    nronoxr   = models.FloatField(blank=True, null=True)
+    nrgnoxr   = models.FloatField(blank=True, null=True)
+    nrfsnxr   = models.FloatField(blank=True, null=True)
+    nrcnxor   = models.FloatField(blank=True, null=True)
+    nronxor   = models.FloatField(blank=True, null=True)
+    nrgnxor   = models.FloatField(blank=True, null=True)
+    nrfsnor   = models.FloatField(blank=True, null=True)
+    nrcso2r   = models.FloatField(blank=True, null=True)
+    nroso2r   = models.FloatField(blank=True, null=True)
+    nrgso2r   = models.FloatField(blank=True, null=True)
+    nrfss2r   = models.FloatField(blank=True, null=True)
+    nrcco2r   = models.FloatField(blank=True, null=True)
+    nroco2r   = models.FloatField(blank=True, null=True)
+    nrgco2r   = models.FloatField(blank=True, null=True)
+    nrfsc2r   = models.FloatField(blank=True, null=True)
+    nrcch4r   = models.FloatField(blank=True, null=True)
+    nroch4r   = models.FloatField(blank=True, null=True)
+    nrgch4r   = models.FloatField(blank=True, null=True)
+    nrfch4r   = models.FloatField(blank=True, null=True)
+    nrcn2or   = models.FloatField(blank=True, null=True)
+    nron2or   = models.FloatField(blank=True, null=True)
+    nrgn2or   = models.FloatField(blank=True, null=True)
+    nrfn2or   = models.FloatField(blank=True, null=True)
+    nrcc2er   = models.FloatField(blank=True, null=True)
+    nroc2er   = models.FloatField(blank=True, null=True)
+    nrgc2er   = models.FloatField(blank=True, null=True)
+    nrfsc2er  = models.FloatField(blank=True, null=True)
+    nrchgr    = models.CharField(blank=True, null=True)
+    nrfshgr   = models.CharField(blank=True, null=True)
+    year      = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_fuel_type_emission_rate'
+
+class NercFuelTypeGeneration(models.Model): 
+    id = models.AutoField(primary_key=True)
+    nerc = models.ForeignKey(
+                NercRegion,
+                on_delete=models.CASCADE,  # Deletes NercFuelTypeGeneration records if the related Plant is deleted
+                db_column='nerc'          
+            ) 
+    nrgenacl = models.FloatField(blank=True, null=True)
+    nrgenaol = models.FloatField(blank=True, null=True)
+    nrgenaso = models.FloatField(blank=True, null=True)
+    nrgenagt = models.FloatField(blank=True, null=True)
+    nrgenaof = models.FloatField(blank=True, null=True)
+    nrgenaop = models.FloatField(blank=True, null=True)
+    nrgenatn = models.FloatField(blank=True, null=True)
+    nrgenatr = models.FloatField(blank=True, null=True)
+    nrgenato = models.FloatField(blank=True, null=True)
+    nrgenath = models.FloatField(blank=True, null=True)
+    nrgenacy = models.FloatField(blank=True, null=True)
+    nrgenacn = models.FloatField(blank=True, null=True)
+    nrgenaco = models.FloatField(blank=True, null=True)
+    nrgenags = models.FloatField(blank=True, null=True)
+    nrgenanc = models.FloatField(blank=True, null=True)
+    nrgenahy = models.FloatField(blank=True, null=True)
+    nrgenabm = models.FloatField(blank=True, null=True)
+    nrgenawi = models.FloatField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True)  
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_fuel_type_generation'
+
+
+class NercNonBaseloadEmissionRate(models.Model): 
+    id = models.AutoField(primary_key=True)
+    nerc = models.ForeignKey(
+                NercRegion,
+                on_delete=models.CASCADE,  # Deletes NercNonBaseloadEmissionRate records if the related Plant is deleted
+                db_column='nerc'          
+            ) 
+    nrnbnox  = models.FloatField(null=True, blank=True) 
+    nrnbnxo  = models.FloatField(null=True, blank=True) 
+    nrnbso2  = models.FloatField(null=True, blank=True) 
+    nrnbco2  = models.FloatField(null=True, blank=True) 
+    nrnbch4  = models.FloatField(null=True, blank=True) 
+    nrnbn2o  = models.FloatField(null=True, blank=True) 
+    nrnbc2e  = models.FloatField(null=True, blank=True) 
+    nrnbhg   = models.FloatField(null=True, blank=True) 
+    nrnbgncl = models.FloatField(null=True, blank=True) 
+    nrnbgnol = models.FloatField(null=True, blank=True) 
+    nrnbgngs = models.FloatField(null=True, blank=True) 
+    nrnbgnnc = models.FloatField(null=True, blank=True) 
+    nrnbgnhy = models.FloatField(null=True, blank=True) 
+    nrnbgnbm = models.FloatField(null=True, blank=True) 
+    nrnbgnwi = models.FloatField(null=True, blank=True) 
+    nrnbgnso = models.FloatField(null=True, blank=True) 
+    nrnbgngt = models.FloatField(null=True, blank=True) 
+    nrnbgnof = models.FloatField(null=True, blank=True) 
+    nrnbgnop = models.FloatField(null=True, blank=True) 
+    nrnbclpr = models.FloatField(null=True, blank=True) 
+    nrnbolpr = models.FloatField(null=True, blank=True) 
+    nrnbgspr = models.FloatField(null=True, blank=True) 
+    nrnbncpr = models.FloatField(null=True, blank=True) 
+    nrnbhypr = models.FloatField(null=True, blank=True) 
+    nrnbbmpr = models.FloatField(null=True, blank=True) 
+    nrnbwipr = models.FloatField(null=True, blank=True) 
+    nrnbsopr = models.FloatField(null=True, blank=True) 
+    nrnbgtpr = models.FloatField(null=True, blank=True) 
+    nrnbofpr = models.FloatField(null=True, blank=True) 
+    nrnboppr = models.FloatField(null=True, blank=True) 
+    year     = models.IntegerField(null=True, blank=True)  
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_nonbaseload_emission_rate'
+
+class NercResourceMix(models.Model): 
+    id = models.AutoField(primary_key=True)
+    nerc = models.ForeignKey(
+                NercRegion,
+                on_delete=models.CASCADE,  # Deletes NercResourceMix records if the related Plant is deleted
+                db_column='nerc'          
+            )  
+    nrclpr = models.FloatField(blank=True, null=True)
+    nrolpr = models.FloatField(blank=True, null=True)
+    nrgspr = models.FloatField(blank=True, null=True)
+    nrncpr = models.FloatField(blank=True, null=True)
+    nrhypr = models.FloatField(blank=True, null=True)
+    nrbmpr = models.FloatField(blank=True, null=True)
+    nrwipr = models.FloatField(blank=True, null=True)
+    nrsopr = models.FloatField(blank=True, null=True)
+    nrgtpr = models.FloatField(blank=True, null=True)
+    nrofpr = models.FloatField(blank=True, null=True)
+    nroppr = models.FloatField(blank=True, null=True)
+    nrtnpr = models.FloatField(blank=True, null=True)
+    nrtrpr = models.FloatField(blank=True, null=True)
+    nrtopr = models.FloatField(blank=True, null=True)
+    nrthpr = models.FloatField(blank=True, null=True)
+    nrcypr = models.FloatField(blank=True, null=True)
+    nrcnpr = models.FloatField(blank=True, null=True)
+    nrcopr = models.FloatField(blank=True, null=True)
+    year   = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_resource_mix'
 
 class PlantDistributionSys(models.Model):
     oprcode = models.IntegerField(null=True, blank=True)
@@ -490,6 +748,7 @@ class Sector(models.Model):
 class State(models.Model):
     fipsst = models.CharField(max_length=500, null=False, blank=False, unique=True)
     pstatabb = models.CharField(max_length=2, null=False, blank=False)
+    stnamepcap = models.FloatField(null=True, blank=True)
    
     class Meta:
         db_table = 'state'
@@ -502,6 +761,7 @@ class StateAnnualCombustion(models.Model):
                 on_delete=models.CASCADE,  # Deletes StateAnnualCombustion records if the related Plant is deleted
                 db_column='fipsst'          
             )  
+    stnamepcap = models.FloatField(null=True, blank=True)
     sthtian    = models.FloatField(null=True, blank=True)
     sthtioz    = models.FloatField(null=True, blank=True)
     sthtiant   = models.FloatField(null=True, blank=True)
@@ -525,6 +785,7 @@ class StateAnnualCombustion(models.Model):
 class Subregion(models.Model): 
     subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
     srname = models.CharField(max_length=255, null=False, blank=False)
+    srnamepcap = models.FloatField(null=True, blank=True)
      
     def __str__(self):
         return self.name
@@ -774,6 +1035,7 @@ class SubrgnAnnualCombustion(models.Model):
     srhtiozt  = models.FloatField(null=True, blank=True)
     srngenan  = models.FloatField(null=True, blank=True)
     srngenoz  = models.FloatField(null=True, blank=True)
+    srngennb  = models.FloatField(null=True, blank=True)
     srnoxan   = models.FloatField(null=True, blank=True)
     srnoxoz   = models.FloatField(null=True, blank=True)
     srso2an   = models.FloatField(null=True, blank=True)
@@ -781,7 +1043,7 @@ class SubrgnAnnualCombustion(models.Model):
     srch4an   = models.FloatField(null=True, blank=True)
     srn2oan   = models.FloatField(null=True, blank=True)
     srco2eqa  = models.FloatField(null=True, blank=True)
-    srhgan    = models.FloatField(null=True, blank=True) 
+    srhgan    = models.CharField(null=True, blank=True) 
     year      = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
@@ -903,6 +1165,118 @@ class SubrgnFuelTypeEmissionRate(models.Model):
 
     class Meta:
         db_table = 'subrgn_fuel_type_emission_rate'
+
+class SubrgnFuelTypeGeneration(models.Model): 
+    id = models.AutoField(primary_key=True)
+    subrgn = models.ForeignKey(
+                Subregion,
+                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
+                db_column='subrgn'          
+            ) 
+    srgenacl = models.FloatField(blank=True, null=True)
+    srgenaol = models.FloatField(blank=True, null=True)
+    srgenaso = models.FloatField(blank=True, null=True)
+    srgenagt = models.FloatField(blank=True, null=True)
+    srgenaof = models.FloatField(blank=True, null=True)
+    srgenaop = models.FloatField(blank=True, null=True)
+    srgenatn = models.FloatField(blank=True, null=True)
+    srgenatr = models.FloatField(blank=True, null=True)
+    srgenato = models.FloatField(blank=True, null=True)
+    srgenath = models.FloatField(blank=True, null=True)
+    srgenacy = models.FloatField(blank=True, null=True)
+    srgenacn = models.FloatField(blank=True, null=True)
+    srgenaco = models.FloatField(blank=True, null=True)
+    srgenags = models.FloatField(blank=True, null=True)
+    srgenanc = models.FloatField(blank=True, null=True)
+    srgenahy = models.FloatField(blank=True, null=True)
+    srgenabm = models.FloatField(blank=True, null=True)
+    srgenawi = models.FloatField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True)  
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'subrgn_fuel_type_generation'
+
+
+class SubrgnNonBaseloadEmissionRate(models.Model): 
+    id = models.AutoField(primary_key=True)
+    subrgn = models.ForeignKey(
+                Subregion,
+                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
+                db_column='subrgn'          
+            ) 
+    srnbnox  = models.FloatField(null=True, blank=True) 
+    srnbnxo  = models.FloatField(null=True, blank=True) 
+    srnbso2  = models.FloatField(null=True, blank=True) 
+    srnbco2  = models.FloatField(null=True, blank=True) 
+    srnbch4  = models.FloatField(null=True, blank=True) 
+    srnbn2o  = models.FloatField(null=True, blank=True) 
+    srnbc2e  = models.FloatField(null=True, blank=True) 
+    srnbhg   = models.FloatField(null=True, blank=True) 
+    srnbgncl = models.FloatField(null=True, blank=True) 
+    srnbgnol = models.FloatField(null=True, blank=True) 
+    srnbgngs = models.FloatField(null=True, blank=True) 
+    srnbgnnc = models.FloatField(null=True, blank=True) 
+    srnbgnhy = models.FloatField(null=True, blank=True) 
+    srnbgnbm = models.FloatField(null=True, blank=True) 
+    srnbgnwi = models.FloatField(null=True, blank=True) 
+    srnbgnso = models.FloatField(null=True, blank=True) 
+    srnbgngt = models.FloatField(null=True, blank=True) 
+    srnbgnof = models.FloatField(null=True, blank=True) 
+    srnbgnop = models.FloatField(null=True, blank=True) 
+    srnbclpr = models.FloatField(null=True, blank=True) 
+    srnbolpr = models.FloatField(null=True, blank=True) 
+    srnbgspr = models.FloatField(null=True, blank=True) 
+    srnbncpr = models.FloatField(null=True, blank=True) 
+    srnbhypr = models.FloatField(null=True, blank=True) 
+    srnbbmpr = models.FloatField(null=True, blank=True) 
+    srnbwipr = models.FloatField(null=True, blank=True) 
+    srnbsopr = models.FloatField(null=True, blank=True) 
+    srnbgtpr = models.FloatField(null=True, blank=True) 
+    srnbofpr = models.FloatField(null=True, blank=True) 
+    srnboppr = models.FloatField(null=True, blank=True) 
+    year     = models.IntegerField(null=True, blank=True)  
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'subrgn_nonbaseload_emission_rate'
+
+class SubrgnResourceMix(models.Model): 
+    id = models.AutoField(primary_key=True)
+    subrgn = models.ForeignKey(
+                Subregion,
+                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
+                db_column='subrgn'          
+            )  
+    srclpr = models.FloatField(blank=True, null=True)
+    srolpr = models.FloatField(blank=True, null=True)
+    srgspr = models.FloatField(blank=True, null=True)
+    srncpr = models.FloatField(blank=True, null=True)
+    srhypr = models.FloatField(blank=True, null=True)
+    srbmpr = models.FloatField(blank=True, null=True)
+    srwipr = models.FloatField(blank=True, null=True)
+    srsopr = models.FloatField(blank=True, null=True)
+    srgtpr = models.FloatField(blank=True, null=True)
+    srofpr = models.FloatField(blank=True, null=True)
+    sroppr = models.FloatField(blank=True, null=True)
+    srtnpr = models.FloatField(blank=True, null=True)
+    srtrpr = models.FloatField(blank=True, null=True)
+    srtopr = models.FloatField(blank=True, null=True)
+    srthpr = models.FloatField(blank=True, null=True)
+    srcypr = models.FloatField(blank=True, null=True)
+    srcnpr = models.FloatField(blank=True, null=True)
+    srcopr = models.FloatField(blank=True, null=True)
+    year   = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'subrgn_resource_mix'
 
 # Got to go back to this
 class Utility(models.Model):
