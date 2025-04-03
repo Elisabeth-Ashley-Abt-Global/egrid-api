@@ -42,7 +42,7 @@ class Command(BaseCommand):
                     populate_generator_data(engine, api_url) # Fetch generator data from the R API
 
                 case 'nerc':
-                    call_r_nerc() 
+                    call_r_nerc(engine, api_url) 
 
                 case 'state':
                     call_r_state()

@@ -310,7 +310,7 @@ class County(models.Model):
 class Generator(models.Model):
     seqgen = models.FloatField(null=True, blank=True) 
     genid = models.CharField(null=True, blank=True)  
-    orispl = models.IntegerField(null=False, blank=False, unique=False)  
+    orispl = models.IntegerField(null=False, blank=False)  
     # numblr   = models.FloatField(null=True, blank=True)
     # genstat  = models.CharField(max_length=500, null=True, blank=True)
     # prmvr    = models.CharField(max_length=500, null=True, blank=True)
@@ -329,6 +329,10 @@ class Generator(models.Model):
 
     class Meta:
         db_table = 'generator'
+
+        constraints = [
+            models.UniqueConstraint(fields=['genid', 'orispl'], name='unique_genid_orispl')
+        ]
     
 
 class NercRegion(models.Model):

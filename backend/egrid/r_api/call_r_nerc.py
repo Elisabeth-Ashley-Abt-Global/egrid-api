@@ -1,23 +1,15 @@
 import requests
 from egrid.models import NercRegion
-from sqlalchemy import create_engine, text 
+from sqlalchemy import text 
 import requests 
-import logging
-from django.conf import settings
+import logging 
 import pandas as pd 
 
 logger = logging.getLogger('egrid')
  
-def call_r_nerc():
-
-    engine = create_engine(
-    f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
-    f"{settings.DATABASES['default']['HOST']}:{settings.DATABASES['default']['PORT']}/"
-    f"{settings.DATABASES['default']['NAME']}"
-    ) 
-
+def call_r_nerc(engine=None, api_url=None): 
     try:
-        response = requests.get("http://127.0.0.1:8001/nerc")
+        response = requests.get(f"{api_url}nerc")
         data = response.json() 
 
         if response.status_code == 200 and data.get('success'):
