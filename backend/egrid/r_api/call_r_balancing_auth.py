@@ -1,18 +1,8 @@
 # File to communicate with the R API
-import requests 
-from egrid.models import (
-    BaFuelTypeGeneration,
-    BaNonBaseloadEmissionRate,
-    BaResourceMix, 
-    BalancingAuthority, 
-    BAAnnualCombustion, 
-    BaEmissionRate, 
-    BaFuelTypeEmissionRate
-    )
+import requests  
 import logging
-import pandas as pd 
-from django.conf import settings
-from sqlalchemy import create_engine, text 
+import pandas as pd  
+from sqlalchemy import text 
 
 logger = logging.getLogger('egrid')
   
@@ -22,7 +12,8 @@ def populate_balancing_auth_data(engine=None, api_url=None):
     try:
         response = requests.get(f"{api_url}balancingauthority")
         data = response.json() 
-  
+        # print(data) 
+        
         if response.status_code == 200 and data.get('success'):
             ba_data = data.get('data', [])
             df = pd.DataFrame(ba_data) 
@@ -30,12 +21,12 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             year = df['year'].unique()[0] 
             print('year ', year)
 
-            ba_df = df[['bacode', 'baname']] 
+            ba_df = df[['bacode', 'baname', 'banamepcap']] 
 
             # BAAnnualCombustion
-            # baannualcombustion_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
-            # baannualcombustion_df = baannualcombustion_df.copy()
-            # baannualcombustion_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
+            baannualcombustion_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
+            baannualcombustion_df = baannualcombustion_df.copy()
+            baannualcombustion_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
 
             # # BaEmissionRate
             # try: 
@@ -56,8 +47,8 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             try:
 
                 ba_df.to_sql('balancing_authority_temp', con=engine, if_exists='replace', index=False) 
-                # baannualcombustion_df.to_sql('ba_annual_combustion_temp', con=engine, if_exists='replace', index=False) 
-
+                baannualcombustion_df.to_sql('ba_annual_combustion_temp', con=engine, if_exists='replace', index=False)
+                 
                 with engine.connect() as conn:
                     trans = conn.begin()
                     ba_cnt = conn.execute(text("select count(*) from balancing_authority;")).scalar()
@@ -65,60 +56,62 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     baannualcombustion_cnt = conn.execute(
                         text("select count(*) from ba_annual_combustion where year = :year"),
                         {"year": year}
-                    ).scalar() 
+                    ).scalar()  
 
                     if ba_cnt == 0:
                         conn.execute(text("""
                             insert into balancing_authority (
-                                bacode, baname
-                            ) select bacode, baname from balancing_authority_temp;
+                                bacode, baname, banamepcap
+                            ) select bacode, baname, banamepcap 
+                            from balancing_authority_temp;
                         """))
                     else:
                         conn.execute(text("""
                             update balancing_authority 
                             set bacode = bt.bacode, 
-                            baname = bt.baname
+                                baname = bt.baname,
+                                banamepcap = bt.banamepcap              
                             from balancing_authority_temp bt
                             where balancing_authority.bacode = bt.bacode;
                         """))
 
-                    # if baannualcombustion_cnt == 0:
-                    #     conn.execute(text(""""
-                    #                       insert into ba_annual_combustion (
-                    #                             bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
-                    #                             bangenan, bangenoz, banoxan, banoxoz, baso2an,
-                    #                             baco2an, bach4an, ban2oan, baco2eqa, bahgan
-                    #                         ) select bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
-                    #                             bangenan, bangenoz, banoxan, banoxoz, baso2an,
-                    #                             baco2an, bach4an, ban2oan, baco2eqa, bahgan 
-                    #                         from ba_annual_combustion_temp;
-                    #     """))
-                    # else:
-                    #     conn.execute(text("""update ba_annual_combustion  
-                    #                         set bacode = ba_abnnual_combustion_temp.bacode,
-                    #                         year = b.year,
-                    #                         bahtian = b.bahtian,
-                    #                         bahtioz = b.bahtioz,
-                    #                         bahtiant = b.bahtiant,
-                    #                         bahtiozt = b.bahtiozt,
-                    #                         bangenan = b.bangenan,
-                    #                         bangenoz = b.bangenoz,
-                    #                         banoxan = b.banoxan,
-                    #                         banoxoz = b.banoxoz,
-                    #                         baso2an = b.baso2an,
-                    #                         baco2an = b.baco2an,
-                    #                         bach4an = b.bach4an,
-                    #                         ban2oan = b.ban2oan,
-                    #                         baco2eqa = b.baco2eqa,
-                    #                         bahgan = b.bahgan
-                    #                         from ba_annual_combustion_temp b
-                    #                         where ba_annual_combustion.bacode = b.bacode
-                    #                         and ba_annual_combustion.year = b.year;
-                    #                     """))
+                    if baannualcombustion_cnt == 0:
+                        conn.execute(text(""""
+                                          insert into ba_annual_combustion (
+                                                bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
+                                                bangenan, bangenoz, banoxan, banoxoz, baso2an,
+                                                baco2an, bach4an, ban2oan, baco2eqa, bahgan
+                                            ) select bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
+                                                bangenan, bangenoz, banoxan, banoxoz, baso2an,
+                                                baco2an, bach4an, ban2oan, baco2eqa, bahgan 
+                                            from ba_annual_combustion_temp;
+                        """))
+                    else:
+                        conn.execute(text("""update ba_annual_combustion  
+                                            set bacode = ba_abnnual_combustion_temp.bacode,
+                                            year = b.year,
+                                            bahtian = b.bahtian,
+                                            bahtioz = b.bahtioz,
+                                            bahtiant = b.bahtiant,
+                                            bahtiozt = b.bahtiozt,
+                                            bangenan = b.bangenan,
+                                            bangenoz = b.bangenoz,
+                                            banoxan = b.banoxan,
+                                            banoxoz = b.banoxoz,
+                                            baso2an = b.baso2an,
+                                            baco2an = b.baco2an,
+                                            bach4an = b.bach4an,
+                                            ban2oan = b.ban2oan,
+                                            baco2eqa = b.baco2eqa,
+                                            bahgan = b.bahgan
+                                            from ba_annual_combustion_temp b
+                                            where ba_annual_combustion.bacode = b.bacode
+                                            and ba_annual_combustion.year = b.year;
+                                        """))
                     trans.commit() 
                     
                     conn.execute(text("drop table balancing_authority_temp;"))
-                    conn.execute(text("drop table ba_annual_combustion_temp;"))
+                    # conn.execute(text("drop table ba_annual_combustion_temp;"))
                 
                 print('Success inserting balancing authority data.')  
  
