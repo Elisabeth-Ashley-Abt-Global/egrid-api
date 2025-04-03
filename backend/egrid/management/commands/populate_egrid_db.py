@@ -6,11 +6,18 @@ from egrid.r_api.call_r_generator import populate_generator_data
 from egrid.r_api.call_r_nerc import call_r_nerc
 from egrid.r_api.call_r_state import call_r_state 
 from egrid.r_api.call_r_unit import call_r_unit
-
+from sqlalchemy import create_engine, text 
+from django.conf import settings
 # from egrid.logic.queries.plant_queries import create_or_update_plant
 import logging
 
 logger = logging.getLogger('egrid')
+
+engine = create_engine(
+    f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
+    f"{settings.DATABASES['default']['HOST']}:{settings.DATABASES['default']['PORT']}/"
+    f"{settings.DATABASES['default']['NAME']}"
+    )   
 
 class Command(BaseCommand):
     help = "Populate the PostgreSQL database using functions from R API"
@@ -25,7 +32,7 @@ class Command(BaseCommand):
         try:
            match table_name:
                 case 'plant':
-                   call_r_plant() # Fetch plant data from the R API
+                   call_r_plant(engine) # Fetch plant data from the R API
             
                 case 'balancing_authority':
                     populate_balancing_auth_data()  
