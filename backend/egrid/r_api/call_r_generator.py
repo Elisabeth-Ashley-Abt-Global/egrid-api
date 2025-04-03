@@ -22,6 +22,8 @@ def populate_generator_data(engine=None, api_url=None):
             gen_data = data.get('data', [])
             df = pd.DataFrame(gen_data)
 
+            year = data.get('year', [])
+            print('year ', year)
             # Cast columns to appropriate types
             cast_to_float = ['seqgen', 'namepcap', 'cfact', 'genntan', 'genntoz']
             cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year']
@@ -51,8 +53,11 @@ def populate_generator_data(engine=None, api_url=None):
                     trans = conn.begin()
 
                     gen_cnt = conn.execute(text("select count(*) from generator;")).scalar()
-                    generation_cnt = conn.execute(text("select count(*) from generation;")).scalar()
- 
+                    generation_cnt = conn.execute(
+                        text("select count(*) from generation where year = :year"),
+                        {"year": year}
+                    ).scalar() 
+
                     if gen_cnt == 0:   
                         conn.execute(text("""
                             insert into generator (
@@ -98,7 +103,8 @@ def populate_generator_data(engine=None, api_url=None):
                             genyrret = generator_temp.genyrret
                             from generator_temp  
                             where generation.orispl = generator_temp.orispl 
-                                and generation.genid = generator_temp.genid;
+                                and generation.genid = generator_temp.genid
+                                and generation.year = generator_temp.year;
                         """))
   
                     conn.execute(text("truncate table generator_temp cascade;"))
