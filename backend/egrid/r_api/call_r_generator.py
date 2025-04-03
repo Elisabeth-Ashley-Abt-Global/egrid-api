@@ -22,7 +22,7 @@ def populate_generator_data(engine=None, api_url=None):
             gen_data = data.get('data', [])
             df = pd.DataFrame(gen_data)
 
-            year = data.get('year', [])
+            year = df['year'].unique()[0] 
             print('year ', year)
             # Cast columns to appropriate types
             cast_to_float = ['seqgen', 'namepcap', 'cfact', 'genntan', 'genntoz']
@@ -33,8 +33,7 @@ def populate_generator_data(engine=None, api_url=None):
 
             for col in cast_to_float:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
-
-
+ 
             # print('df', df.head()) # for debugging
             gen_df = df[['seqgen', 'genid', 'orispl']] 
             gen_df = df.copy()
@@ -43,8 +42,7 @@ def populate_generator_data(engine=None, api_url=None):
             generation_df = df[['genid','orispl','year','numblr',
                                     'genstat', 'prmvr', 'fuelg1', 'namepcap' ,'cfact',
                                     'genntan', 'genntoz', 'genersrc', 'genyronl', 'genyrret']]
-             
- 
+            
             try: 
                 gen_df.to_sql('generator_temp', con=engine, if_exists='replace', index=False) 
                 generation_df.to_sql('generation_temp', con=engine, if_exists='replace', index=False)
@@ -107,7 +105,7 @@ def populate_generator_data(engine=None, api_url=None):
                                 and generation.year = generator_temp.year;
                         """))
   
-                    conn.execute(text("truncate table generator_temp cascade;"))
+                    # conn.execute(text("truncate table generator_temp;"))
                     conn.execute(text("drop table generator_temp;"))
                     conn.execute(text("drop table generation_temp;"))
  
