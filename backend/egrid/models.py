@@ -315,19 +315,7 @@ class Generator(models.Model):
     seqgen = models.FloatField(null=True, blank=True) 
     genid = models.CharField(null=True, blank=True)  
     orispl = models.IntegerField(null=False, blank=False)  
-    # numblr   = models.FloatField(null=True, blank=True)
-    # genstat  = models.CharField(max_length=500, null=True, blank=True)
-    # prmvr    = models.CharField(max_length=500, null=True, blank=True)
-    # fuelg1   = models.CharField(max_length=500, null=True, blank=True)
-    # namepcap = models.FloatField(null=True, blank=True)
-    # cfact    = models.FloatField(null=True, blank=True)
-    # genntan  = models.FloatField(null=True, blank=True)
-    # genntoz  = models.FloatField(null=True, blank=True)
-    # genersrc = models.CharField(max_length=500, null=True, blank=True)
-    # genyronl = models.FloatField(null=True, blank=True)
-    # genyrret = models.FloatField(null=True, blank=True)
-    # year = models.IntegerField(null=True, blank=True)  # Year
-    
+ 
     def __str__(self):
         return self.name
 
@@ -336,6 +324,29 @@ class Generator(models.Model):
 
         constraints = [
             models.UniqueConstraint(fields=['genid', 'orispl'], name='unique_genid_orispl')
+        ]
+
+class Generation(models.Model): 
+    genid = models.CharField(null=True, blank=True)  
+    orispl = models.IntegerField(null=False, blank=False)  
+    numblr   = models.IntegerField(null=True, blank=True)
+    genstat  = models.CharField(max_length=500, null=True, blank=True)
+    prmvr    = models.CharField(max_length=500, null=True, blank=True)
+    fuelg1   = models.CharField(max_length=500, null=True, blank=True)
+    namepcap = models.FloatField(null=True, blank=True)
+    cfact    = models.FloatField(null=True, blank=True)
+    genntan  = models.FloatField(null=True, blank=True)
+    genntoz  = models.FloatField(null=True, blank=True)
+    genersrc = models.CharField(max_length=500, null=True, blank=True)
+    genyronl = models.IntegerField(null=True, blank=True)
+    genyrret = models.IntegerField(null=True, blank=True)
+    year = models.IntegerField(null=True, blank=True)  # Year
+
+    class Meta:
+        db_table = 'generation'    
+
+        constraints = [
+            models.UniqueConstraint(fields=['genid', 'orispl', 'year'], name='unique_genid_orispl_year')
         ]
     
 

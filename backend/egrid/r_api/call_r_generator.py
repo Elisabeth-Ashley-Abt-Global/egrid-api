@@ -20,39 +20,45 @@ def populate_generator_data(engine=None, api_url=None):
 
         if response.status_code == 200 and data.get('success'):
             gen_data = data.get('data', [])
-            gen_df = pd.DataFrame(gen_data)
-            # print('df', df.head()) # for debugging
-            gen_df = gen_df[['seqgen', 'genid', 'orispl']] 
-            gen_df = gen_df.copy()
-            gen_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
-            
-            # Cast columns to appropriate types
-            cast_to_float = ['seqgen']
-            cast_to_int = ['orispl']
+            df = pd.DataFrame(gen_data)
 
+            # Cast columns to appropriate types
+            cast_to_float = ['seqgen', 'namepcap', 'cfact', 'genntan', 'genntoz']
+            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year']
+ 
             for col in cast_to_int:
-                gen_df[col] = pd.to_numeric(gen_df[col], errors='coerce').astype("Int64")
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
 
             for col in cast_to_float:
-                gen_df[col] = pd.to_numeric(gen_df[col], errors='coerce').astype(float)
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+
+
+            # print('df', df.head()) # for debugging
+            gen_df = df[['seqgen', 'genid', 'orispl']] 
+            gen_df = df.copy()
+            gen_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
+
+            generation_df = df[['genid','orispl','year','numblr',
+                                    'genstat', 'prmvr', 'fuelg1', 'namepcap' ,'cfact',
+                                    'genntan', 'genntoz', 'genersrc', 'genyronl', 'genyrret']]
+             
  
             try: 
-                gen_df.to_sql('generator_temp', con=engine, if_exists='replace', index=False)
-
+                gen_df.to_sql('generator_temp', con=engine, if_exists='replace', index=False) 
+                generation_df.to_sql('generation_temp', con=engine, if_exists='replace', index=False)
 
                 with engine.connect() as conn:
                     trans = conn.begin()
 
                     gen_cnt = conn.execute(text("select count(*) from generator;")).scalar()
-
-                    if gen_cnt == 0:
-                                
+                    generation_cnt = conn.execute(text("select count(*) from generation;")).scalar()
+ 
+                    if gen_cnt == 0:   
                         conn.execute(text("""
                             insert into generator (
                                 seqgen, genid, orispl
                             ) select seqgen, genid, orispl from generator_temp;
-                        """)) 
-
+                        """))  
                     else:
                         conn.execute(text("""
                             update generator 
@@ -63,9 +69,42 @@ def populate_generator_data(engine=None, api_url=None):
                                 and generator.genid = generator_temp.genid;
                         """))
 
-
-                    conn.execute(text("truncate table generator_temp;"))
+                    if generation_cnt == 0:
+                        conn.execute(text("""
+                            insert into generation (
+                              genid, orispl, year, numblr,
+                                genstat, prmvr, fuelg1, namepcap ,cfact,
+                                genntan, genntoz, genersrc, genyronl, genyrret
+                            ) select genid, orispl, year, numblr,
+                                genstat, prmvr, fuelg1, namepcap ,cfact,
+                                genntan, genntoz, genersrc, genyronl, genyrret
+                            from generator_temp;
+                        """))
+                    else:   
+                        conn.execute(text("""  
+                            update generation 
+                            set genid = generator_temp.genid,
+                            year = generator_temp.year, 
+                            numblr = generator_temp.numblr,
+                            genstat = generator_temp.genstat, 
+                            prmvr = generator_temp.prmvr,
+                            fuelg1 = generator_temp.fuelg1,
+                            namepcap = generator_temp.namepcap,
+                            cfact = generator_temp.cfact, 
+                            genntan = generator_temp.genntan,
+                            genntoz = generator_temp.genntoz, 
+                            genersrc = generator_temp.genersrc,
+                            genyronl = generator_temp.genyronl,
+                            genyrret = generator_temp.genyrret
+                            from generator_temp  
+                            where generation.orispl = generator_temp.orispl 
+                                and generation.genid = generator_temp.genid;
+                        """))
+  
+                    conn.execute(text("truncate table generator_temp cascade;"))
                     conn.execute(text("drop table generator_temp;"))
+                    conn.execute(text("drop table generation_temp;"))
+ 
                     trans.commit() 
  
                 print('success')
