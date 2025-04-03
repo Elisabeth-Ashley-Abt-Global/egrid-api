@@ -67,8 +67,7 @@ def populate_generator_data(engine=None, api_url=None):
                     conn.execute(text("truncate table generator_temp;"))
                     conn.execute(text("drop table generator_temp;"))
                     trans.commit() 
-
-                gen_df.to_sql('generator', con=engine, if_exists='append', index=False)
+ 
                 print('success')
                 return {"success": True, "message": "Data successfully inserted into the Generator table."}
             except Exception as e:
