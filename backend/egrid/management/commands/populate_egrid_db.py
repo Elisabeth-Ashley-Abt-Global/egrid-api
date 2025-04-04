@@ -36,7 +36,7 @@ class Command(BaseCommand):
                    call_r_plant(engine, api_url) # Fetch plant data from the R API
             
                 case 'balancing_authority':
-                    populate_balancing_auth_data()  
+                    populate_balancing_auth_data(engine, api_url)  
 
                 case 'generator': 
                     populate_generator_data(engine, api_url) # Fetch generator data from the R API
