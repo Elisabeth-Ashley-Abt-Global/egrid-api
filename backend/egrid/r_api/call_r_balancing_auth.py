@@ -18,6 +18,17 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             ba_data = data.get('data', [])
             df = pd.DataFrame(ba_data) 
 
+            cast_to_int = ['year']
+            cast_to_float = ['bahtian', 'bahtioz', 'bahtiant', 'banamepcap',
+                              'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 
+                              'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']
+            for col in cast_to_int:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
+
+            for col in cast_to_float:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+ 
+
             year = df['year'].unique()[0] 
             print('year ', year)
 
@@ -55,7 +66,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     
                     baannualcombustion_cnt = conn.execute(
                         text("select count(*) from ba_annual_combustion where year = :year"),
-                        {"year": year}
+                        {"year": int(year)}
                     ).scalar()  
 
                     if ba_cnt == 0:
@@ -76,16 +87,18 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                         """))
 
                     if baannualcombustion_cnt == 0:
-                        conn.execute(text(""""
-                                          insert into ba_annual_combustion (
-                                                bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
-                                                bangenan, bangenoz, banoxan, banoxoz, baso2an,
-                                                baco2an, bach4an, ban2oan, baco2eqa, bahgan
-                                            ) select bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
-                                                bangenan, bangenoz, banoxan, banoxoz, baso2an,
-                                                baco2an, bach4an, ban2oan, baco2eqa, bahgan 
-                                            from ba_annual_combustion_temp;
-                        """))
+                        try:
+                            conn.execute(text("""insert into ba_annual_combustion (
+                                                    bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
+                                                    bangenan, bangenoz, banoxan, banoxoz, baso2an,
+                                                    baco2an, bach4an, ban2oan, baco2eqa, bahgan
+                                                ) select bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
+                                                    bangenan, bangenoz, banoxan, banoxoz, baso2an,
+                                                    baco2an, bach4an, ban2oan, baco2eqa, bahgan 
+                                                from ba_annual_combustion_temp;"""))
+                        except Exception as e:
+                            print('Error inserting into ba_annual_combustion', e)
+                            return {"error": str(e)}
                     else:
                         conn.execute(text("""update ba_annual_combustion  
                                             set bacode = ba_abnnual_combustion_temp.bacode,
@@ -106,8 +119,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                                             bahgan = b.bahgan
                                             from ba_annual_combustion_temp b
                                             where ba_annual_combustion.bacode = b.bacode
-                                            and ba_annual_combustion.year = b.year;
-                                        """))
+                                            and ba_annual_combustion.year = b.year;"""))
                     trans.commit() 
                     
                     conn.execute(text("drop table balancing_authority_temp;"))
