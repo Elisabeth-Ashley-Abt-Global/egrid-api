@@ -74,6 +74,11 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                         {"year": int(year)}
                     ).scalar()  
 
+                    baannualcombustion_cnt = conn.execute(
+                        text("select count(*) from ba_annual_combustion where year = :year"),
+                        {"year": int(year)}
+                    ).scalar()
+
                     if ba_cnt == 0:
                         conn.execute(text("""
                             insert into balancing_authority (

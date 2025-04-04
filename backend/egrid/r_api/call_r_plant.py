@@ -14,13 +14,15 @@ def call_r_plant(engine=None, api_url=None):
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
             plant_df = pd.DataFrame(plant_data) 
-            plant_df = plant_df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'fipscnty', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt']] 
+            plant_df = plant_df[[ 'pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt']] 
+         
             plant_df = plant_df.copy()
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
              
-            cast_to_int = ['orispl', 'utlsrvid', 'fipscnty', 'numunt', 'numgen', 'oprcode', 'seqplt' ]
+            cast_to_int = ['orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt' ]
             cast_to_float = ['lat', 'lon'] 
- 
+
+            
             for col in cast_to_int:
                 plant_df[col] = pd.to_numeric(plant_df[col], errors='coerce').astype("Int64")
 
@@ -35,22 +37,23 @@ def call_r_plant(engine=None, api_url=None):
                     trans = conn.begin()
 
                     plant_cnt = conn.execute(text("select count(*) from plant;")).scalar()
+                    print('plant_cnt', plant_cnt)
                 
                     if plant_cnt == 0:
                   
                         conn.execute(text("""insert into plant (
                                         pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
-                                     fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
+                                      lat, lon, numunt, numgen, plprmfl, plfuelct, 
                                      oprcode, sector, pname, coalflag, seqplt
                                      ) select pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
-                                     fipscnty, lat, lon, numunt, numgen, plprmfl, plfuelct, 
+                                      lat, lon, numunt, numgen, plprmfl, plfuelct, 
                                      oprcode, sector, pname, coalflag, seqplt from plant_temp;
-                                     """))
+                                     """)) 
 
                     else:
                         conn.execute(text("""update plant set pstatabb = plant_temp.pstatabb, 
                         fipsst = plant_temp.fipsst, utlsrvid = plant_temp.utlsrvid,
-                        bacode = plant_temp.bacode, nerc = plant_temp.nerc, fipscnty = plant_temp.fipscnty, 
+                        bacode = plant_temp.bacode, nerc = plant_temp.nerc,  
                         lat = plant_temp.lat, lon = plant_temp.lon, numunt = plant_temp.numunt, 
                         numgen = plant_temp.numgen, plprmfl = plant_temp.plprmfl, plfuelct = plant_temp.plfuelct, 
                         oprcode = plant_temp.oprcode, sector = plant_temp.sector, pname = plant_temp.pname, 
@@ -59,8 +62,8 @@ def call_r_plant(engine=None, api_url=None):
                         where plant.orispl = plant_temp.orispl;
                         """))
 
-                    conn.execute(text("truncate table plant_temp;"))
-                    conn.execute(text("drop table plant_temp;"))
+                    # conn.execute(text("truncate table plant_temp;"))
+                    # conn.execute(text("drop table plant_temp;"))
 
                     trans.commit() 
   

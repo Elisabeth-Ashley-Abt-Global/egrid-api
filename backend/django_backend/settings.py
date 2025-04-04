@@ -89,7 +89,10 @@ DATABASES = {
         'USER': os.getenv('DATABASE_USER'),             
         'PASSWORD': os.getenv('DATABASE_PASSWORD'),    
         'HOST': os.getenv('HOST'),
-        'PORT': os.getenv('PORT') 
+        'PORT': os.getenv('PORT'),
+        'OPTIONS': {
+            'options': '-c search_path=egrid-dev'
+        }
     }
 }
 
