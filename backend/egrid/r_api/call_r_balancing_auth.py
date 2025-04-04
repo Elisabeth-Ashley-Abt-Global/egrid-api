@@ -21,7 +21,11 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             cast_to_int = ['year']
             cast_to_float = ['bahtian', 'bahtioz', 'bahtiant', 'banamepcap',
                               'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 
-                              'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']
+                              'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan',
+                              'banoxrta','banoxrto' ,'baso2rta' ,'baco2rta' ,'bach4rta' ,'ban2orta','bac2erta',
+                              'banoxra','banoxro' ,'baso2ra' ,'baco2ra' ,'bach4ra' ,'ban2ora' ,'bac2era',
+                              'banoxcrt','banoxcro','baso2crt','baco2crt', 'bach4crt', 'ban2ocrt', 'bac2ecrt', 'bahgcrt' ]
+            
             for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
 
@@ -39,14 +43,14 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             baannualcombustion_df = baannualcombustion_df.copy()
             baannualcombustion_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
 
-            # # BaEmissionRate
-            # try: 
-            #     baemissionrate = df[['bacode', 'year', 'banoxrta','banoxrto','baso2rta','baco2rta','bach4rta', 'ban2orta' ,'bac2erta','bahgrta','banoxra',
-            #                          'banoxro','baso2ra', 'baco2ra','bach4ra','ban2ora','bac2era','bahgra','banoxcrt','banoxcro','baso2crt','baco2crt', 'bach4crt', 'ban2ocrt', 'bahgcrt']] # field:  'bac2ecrt' is failing
-            #     baemissionrate = baemissionrate.copy()
-            #     baemissionrate.replace({"--": None, "N/A": None, "": None}, inplace=True)
-            # except Exception:
-            #     print('Error in BaEmissionRate dataframe')
+            # BaEmissionRate
+            try:  
+                baemissionrate_df = df[['bacode', 'year', 'banoxrta','banoxrto','baso2rta','baco2rta','bach4rta', 'ban2orta' ,'bac2erta','bahgrta','banoxra',
+                                     'banoxro','baso2ra', 'baco2ra','bach4ra','ban2ora','bac2era','bahgra','banoxcrt','banoxcro','baso2crt','baco2crt', 'bach4crt', 'ban2ocrt', 'bahgcrt']] # field:  'bac2ecrt' is failing
+                baemissionrate_df = baemissionrate_df.copy()
+                baemissionrate_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
+            except Exception:
+                print('Error in BaEmissionRate dataframe')
 
             # try: 
             #     bafueltypeemissionrate = [['bacode' ]] #,'bagnoxrt','bafsnxrt','bacnxort','baonxort','bagnxort','bafsnort','bacso2rt','baoso2rt','bagso2rt','bafss2rt','bacco2rt','baoco2rt','bagco2rt','bafsc2rt','bacch4rt','baoch4rt','bagch4rt','bafch4rt','bacn2ort','baon2ort','bagn2ort','bafn2ort','bacc2ert','baoc2ert','bagc2ert','bachgrt' ,'bafshgrt' ,'bacnoxr','baonoxr','bagnoxr','bafsnxr','bacnxor','baonxor','bagnxor','bafsnor','bacso2r','baoso2r','bagso2r','bafss2r','bacco2r','baoco2r','bagco2r','bafsc2r','bacch4r','baoch4r','bagch4r','bafch4r','bacn2or','baon2or','bagn2or','bafn2or','bacc2er','baoc2er','bagc2er','bafsc2er' ,'bachgr' ,'bafshgr' ,'year'
@@ -59,7 +63,8 @@ def populate_balancing_auth_data(engine=None, api_url=None):
 
                 ba_df.to_sql('balancing_authority_temp', con=engine, if_exists='replace', index=False) 
                 baannualcombustion_df.to_sql('ba_annual_combustion_temp', con=engine, if_exists='replace', index=False)
-                 
+                baemissionrate_df.to_sql('ba_emission_rate', con=engine, if_exists='replace', index=False)
+                
                 with engine.connect() as conn:
                     trans = conn.begin()
                     ba_cnt = conn.execute(text("select count(*) from balancing_authority;")).scalar()
@@ -101,7 +106,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                             return {"error": str(e)}
                     else:
                         conn.execute(text("""update ba_annual_combustion  
-                                            set bacode = ba_abnnual_combustion_temp.bacode,
+                                            set bacode = b.bacode,
                                             year = b.year,
                                             bahtian = b.bahtian,
                                             bahtioz = b.bahtioz,
