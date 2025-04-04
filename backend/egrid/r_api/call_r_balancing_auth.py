@@ -39,9 +39,9 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             ba_df = df[['bacode', 'baname', 'banamepcap']] 
 
             # BAAnnualCombustion
-            baannualcombustion_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
-            baannualcombustion_df = baannualcombustion_df.copy()
-            baannualcombustion_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
+            baadjustedvalues_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
+            baadjustedvalues_df = baadjustedvalues_df.copy()
+            baadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
 
             # BaEmissionRate
             try:  
@@ -62,22 +62,22 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             try:
 
                 ba_df.to_sql('balancing_authority_temp', con=engine, if_exists='replace', index=False) 
-                baannualcombustion_df.to_sql('ba_annual_combustion_temp', con=engine, if_exists='replace', index=False)
+                baadjustedvalues_df.to_sql('ba_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 baemissionrate_df.to_sql('ba_emission_rate', con=engine, if_exists='replace', index=False)
                 
                 with engine.connect() as conn:
                     trans = conn.begin()
                     ba_cnt = conn.execute(text("select count(*) from balancing_authority;")).scalar()
                     
-                    baannualcombustion_cnt = conn.execute(
-                        text("select count(*) from ba_annual_combustion where year = :year"),
+                    baadjustedvalues_cnt = conn.execute(
+                        text("select count(*) from ba_adjusted_values where year = :year"),
                         {"year": int(year)}
                     ).scalar()  
 
-                    baannualcombustion_cnt = conn.execute(
-                        text("select count(*) from ba_annual_combustion where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
+                    # baannualcombustion_cnt = conn.execute(
+                    #     text("select count(*) from ba_adjusted_values where year = :year"),
+                    #     {"year": int(year)}
+                    # ).scalar()
 
                     if ba_cnt == 0:
                         conn.execute(text("""
@@ -96,21 +96,21 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                             where balancing_authority.bacode = bt.bacode;
                         """))
 
-                    if baannualcombustion_cnt == 0:
+                    if baadjustedvalues_cnt == 0:
                         try:
-                            conn.execute(text("""insert into ba_annual_combustion (
+                            conn.execute(text("""insert into ba_adjusted_values (
                                                     bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
                                                     bangenan, bangenoz, banoxan, banoxoz, baso2an,
                                                     baco2an, bach4an, ban2oan, baco2eqa, bahgan
                                                 ) select bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
                                                     bangenan, bangenoz, banoxan, banoxoz, baso2an,
                                                     baco2an, bach4an, ban2oan, baco2eqa, bahgan 
-                                                from ba_annual_combustion_temp;"""))
+                                                from ba_adjusted_values_temp;"""))
                         except Exception as e:
-                            print('Error inserting into ba_annual_combustion', e)
+                            print('Error inserting into ba_adjusted_values', e)
                             return {"error": str(e)}
                     else:
-                        conn.execute(text("""update ba_annual_combustion  
+                        conn.execute(text("""update ba_adjusted_values  
                                             set bacode = b.bacode,
                                             year = b.year,
                                             bahtian = b.bahtian,
@@ -127,13 +127,13 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                                             ban2oan = b.ban2oan,
                                             baco2eqa = b.baco2eqa,
                                             bahgan = b.bahgan
-                                            from ba_annual_combustion_temp b
-                                            where ba_annual_combustion.bacode = b.bacode
-                                            and ba_annual_combustion.year = b.year;"""))
+                                            from ba_adjusted_values_temp b
+                                            where ba_adjusted_values.bacode = b.bacode
+                                            and ba_adjusted_values.year = b.year;"""))
                     trans.commit() 
                     
                     conn.execute(text("drop table balancing_authority_temp;"))
-                    # conn.execute(text("drop table ba_annual_combustion_temp;"))
+                    conn.execute(text("drop table ba_adjusted_values_temp;"))
                 
                 print('Success inserting balancing authority data.')  
  
