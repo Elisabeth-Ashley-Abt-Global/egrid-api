@@ -46,12 +46,12 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             # BaEmissionRate
             try:  
                 baemissionrate_df = df[['bacode', 'year', 'banoxrta','banoxrto','baso2rta','baco2rta','bach4rta', 'ban2orta' ,'bac2erta','bahgrta','banoxra',
-                                     'banoxro','baso2ra', 'baco2ra','bach4ra','ban2ora','bac2era','bahgra','banoxcrt','banoxcro','baso2crt','baco2crt', 'bach4crt', 'ban2ocrt', 'bahgcrt']] # field:  'bac2ecrt' is failing
+                                     'banoxro','baso2ra', 'baco2ra','bach4ra','ban2ora','bac2era','bahgra','banoxcrt','banoxcro','baso2crt','baco2crt', 'bach4crt', 'ban2ocrt', 'bahgcrt', 'bac2ecrt']] # field:  'bac2ecrt' is failing
                 baemissionrate_df = baemissionrate_df.copy()
                 baemissionrate_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception:
                 print('Error in BaEmissionRate dataframe')
-
+ 
             # try: 
             #     bafueltypeemissionrate = [['bacode' ]] #,'bagnoxrt','bafsnxrt','bacnxort','baonxort','bagnxort','bafsnort','bacso2rt','baoso2rt','bagso2rt','bafss2rt','bacco2rt','baoco2rt','bagco2rt','bafsc2rt','bacch4rt','baoch4rt','bagch4rt','bafch4rt','bacn2ort','baon2ort','bagn2ort','bafn2ort','bacc2ert','baoc2ert','bagc2ert','bachgrt' ,'bafshgrt' ,'bacnoxr','baonoxr','bagnoxr','bafsnxr','bacnxor','baonxor','bagnxor','bafsnor','bacso2r','baoso2r','bagso2r','bafss2r','bacco2r','baoco2r','bagco2r','bafsc2r','bacch4r','baoch4r','bagch4r','bafch4r','bacn2or','baon2or','bagn2or','bafn2or','bacc2er','baoc2er','bagc2er','bafsc2er' ,'bachgr' ,'bafshgr' ,'year'
             #     bafueltypeemissionrate = bafueltypeemissionrate.copy()
@@ -63,7 +63,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
 
                 ba_df.to_sql('balancing_authority_temp', con=engine, if_exists='replace', index=False) 
                 baadjustedvalues_df.to_sql('ba_adjusted_values_temp', con=engine, if_exists='replace', index=False)
-                baemissionrate_df.to_sql('ba_emission_rate', con=engine, if_exists='replace', index=False)
+                baemissionrate_df.to_sql('ba_emission_rate_temp', con=engine, if_exists='replace', index=False)
                 
                 with engine.connect() as conn:
                     trans = conn.begin()
@@ -74,10 +74,10 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                         {"year": int(year)}
                     ).scalar()  
 
-                    # baannualcombustion_cnt = conn.execute(
-                    #     text("select count(*) from ba_adjusted_values where year = :year"),
-                    #     {"year": int(year)}
-                    # ).scalar()
+                    baemissionrate_cnt = conn.execute(
+                        text("select count(*) from ba_emission_rate where year = :year"),
+                        {"year": int(year)}
+                    ).scalar()
 
                     if ba_cnt == 0:
                         conn.execute(text("""
@@ -130,11 +130,90 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                                             from ba_adjusted_values_temp b
                                             where ba_adjusted_values.bacode = b.bacode
                                             and ba_adjusted_values.year = b.year;"""))
-                    trans.commit() 
+                        
+
+                    if baemissionrate_cnt == 0:
+                        conn.execute(text("""insert into ba_emission_rate (
+                            bacode
+                            ,banoxrta
+                            ,banoxrto
+                            ,baso2rta
+                            ,baco2rta
+                            ,bach4rta
+                            ,ban2orta
+                            ,bac2erta
+                            ,bahgrta 
+                            ,banoxra 
+                            ,banoxro 
+                            ,baso2ra 
+                            ,baco2ra 
+                            ,bach4ra 
+                            ,ban2ora 
+                            ,bac2era 
+                            ,bahgra  
+                            ,banoxcrt
+                            ,banoxcro
+                            ,baso2crt
+                            ,baco2crt
+                            ,bach4crt
+                            ,ban2ocrt
+                            ,bac2ecrt
+                            ,bahgcrt  
+                        ) select 
+                            bacode
+                            ,banoxrta
+                            ,banoxrto
+                            ,baso2rta
+                            ,baco2rta
+                            ,bach4rta
+                            ,ban2orta
+                            ,bac2erta
+                            ,bahgrta 
+                            ,banoxra 
+                            ,banoxro 
+                            ,baso2ra 
+                            ,baco2ra 
+                            ,bach4ra 
+                            ,ban2ora 
+                            ,bac2era 
+                            ,bahgra  
+                            ,banoxcrt
+                            ,banoxcro
+                            ,baso2crt
+                            ,baco2crt
+                            ,bach4crt
+                            ,ban2ocrt
+                            ,bac2ecrt
+                            ,bahgcrt from ba_emission_rate_temp;"""))
+                    else:
+                        conn.execute(text("""update ba_emission_rate  
+                                            set bacode = b.bacode,
+                                                banoxrta = b.banoxrta,
+                                                banoxrto = b.banoxrto,
+                                                baso2rta = b.baso2rta,
+                                                baco2rta = b.baco2rta,
+                                                bach4rta = b.bach4rta,
+                                                ban2orta = b.ban2orta,
+                                                bac2erta = b.bac2erta,
+                                                bahgrta = b.bahgrta,
+                                                banoxra = b.banoxra,
+                                                banoxro = b.banoxro,
+                                                baso2ra = b.baso2ra,
+                                                baco2ra = b.baco2ra,
+                                                bach4ra = b.bach4ra,
+                                                ban2ora = b.ban2ora,
+                                                bac2era = b.bac2era,
+                                                bahgra = b.bahgra
+                                            from ba_emission_rate_temp b
+                                            where ba_emission_rate.bacode = b.bacode
+                                            and ba_emission_rate.year = b.year;"""))
+                
+
                     
                     conn.execute(text("drop table balancing_authority_temp;"))
-                    conn.execute(text("drop table ba_adjusted_values_temp;"))
-                
+                    conn.execute(text("drop table ba_adjusted_values_temp;")) 
+                    conn.execute(text("drop table ba_emission_rate_temp;"))
+                    trans.commit() 
                 print('Success inserting balancing authority data.')  
  
                 
