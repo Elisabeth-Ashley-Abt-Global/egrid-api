@@ -11,7 +11,7 @@ class BalancingAuthority(models.Model):
     def __str__(self):
         return self.name
     
-class BaAnnualCombustion(models.Model):
+class BaAdjustedValues(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing ID
     bacode = models.ForeignKey(
         BalancingAuthority, 
@@ -777,7 +777,7 @@ class PlantResourceMix(models.Model):
         db_table = 'plant_resource_mix'
 
 
-class PlantUnadjustedValues(models.model): 
+class PlantUnadjustedValues(models.Model): 
     id = models.AutoField(primary_key=True) 
     orispl = models.ForeignKey(
                 Plant,
@@ -1147,7 +1147,7 @@ class SubrgnAdjustedValues(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'subrgn_annual_combustion'
+        db_table = 'subrgn_adjusted_values'
 
 class SubrgnEmissionRate(models.Model): 
     id = models.AutoField(primary_key=True)

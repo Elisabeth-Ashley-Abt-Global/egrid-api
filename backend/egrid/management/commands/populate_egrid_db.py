@@ -1,15 +1,18 @@
 from django.core.management.base import BaseCommand
-from egrid.r_api.call_r_subregion import call_r_subregion
+# from egrid.r_api.call_r_subregion import call_r_subregion
 from egrid.r_api.call_r_plant import call_r_plant  # Import the function(s) you need
 from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
 from egrid.r_api.call_r_nerc import call_r_nerc
-from egrid.r_api.call_r_state import call_r_state 
-from egrid.r_api.call_r_unit import call_r_unit
+# from egrid.r_api.call_r_state import call_r_state 
+# from egrid.r_api.call_r_unit import call_r_unit
 from sqlalchemy import create_engine, text 
+from urllib.parse import quote_plus
 from django.conf import settings
 # from egrid.logic.queries.plant_queries import create_or_update_plant
 import logging
+schema = 'egrid-dev'
+options = quote_plus(f'-c search_path={schema}')
 
 logger = logging.getLogger('egrid')
 api_url = 'http://127.0.0.1:8001/'
@@ -17,8 +20,8 @@ api_url = 'http://127.0.0.1:8001/'
 engine = create_engine(
     f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
     f"{settings.DATABASES['default']['HOST']}:{settings.DATABASES['default']['PORT']}/"
-    f"{settings.DATABASES['default']['NAME']}"
-    )   
+    f"{settings.DATABASES['default']['NAME']}?options={options}"
+)   
 
 class Command(BaseCommand):
     help = "Populate the PostgreSQL database using functions from R API"
@@ -44,16 +47,16 @@ class Command(BaseCommand):
                 case 'nerc':
                     call_r_nerc(engine, api_url) 
 
-                case 'state':
-                    call_r_state()
+                # case 'state':
+                #     call_r_state()
 
-                case 'subregion':
-                    call_r_subregion() 
-                case 'unit': 
-                   call_r_unit()
-                case _:
-                   # call all of them
-                    call_r_unit()
+                # case 'subregion':
+                #     call_r_subregion() 
+                # case 'unit': 
+                #    call_r_unit()
+                # case _:
+                #    # call all of them
+                #     call_r_unit()
                     # populate_balancing_auth_data()
                     # populate_generator_data()
                     # call_r_nerc()

@@ -14,7 +14,7 @@ def populate_nerc_data(engine=None, api_url=None):
     try:
         response = requests.get(f"{api_url}nerc")
         data = response.json() 
-
+        
         if response.status_code == 200 and data.get('success'):
             nerc_data = data.get('data', [])
             df = pd.DataFrame(nerc_data)
