@@ -11,6 +11,8 @@ class BalancingAuthority(models.Model):
     def __str__(self):
         return self.name
     
+# class BaAnnualCombustion(models.Model):
+# 
 class BaAdjustedValues(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing ID
     bacode = models.ForeignKey(
