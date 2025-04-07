@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from egrid.r_api.call_r_plant import call_r_plant  # Import the function(s) you need
 from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
-from egrid.r_api.call_r_nerc import call_r_nerc
+# from egrid.r_api.call_r_nerc import call_r_nerc
 # from egrid.r_api.call_r_state import call_r_state 
 # from egrid.r_api.call_r_unit import call_r_unit
 from sqlalchemy import create_engine, text 
