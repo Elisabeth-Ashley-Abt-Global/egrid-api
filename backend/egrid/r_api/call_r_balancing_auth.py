@@ -3,7 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql
+from .utils import update_from_temp_table, build_insert_from_temp_sql 
 
 logger = logging.getLogger('egrid')
   
@@ -43,6 +43,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
 
             year = df['year'].unique()[0] 
             print('year ', year)
+            # STEP 1 ADD DF WITH COLUMNS THAT MATCH MODELS.PY COLUMNS NAME FOR THE TABLE MODEL_NAME_DF 
 
             ba_df = df[['bacode', 'baname', 'banamepcap']] 
 
@@ -50,16 +51,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             baadjustedvalues_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz', 'banoxan', 'banoxoz', 'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
             baadjustedvalues_df = baadjustedvalues_df.copy()
             baadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
-
-            #  TEST
-            # update_row_from_df(
-            #     conn=conn,
-            #     table="ba_adjusted_values",
-            #     df=baadjustedvalues_df,
-            #     where_col="id",
-            #     where_val=1
-            # )
-           
+ 
             # BaEmissionRate
             try:  
                 baemissionrate_df = df[['bacode', 'year', 'banoxrta','banoxrto','baso2rta','baco2rta','bach4rta', 'ban2orta' ,'bac2erta','bahgrta','banoxra',
@@ -85,7 +77,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
 
         
             try:
-
+                # STEP 2 BUILD TEMP TABLE, REPLACE WILL REPLACE IF ALREADY EXISTS
                 ba_df.to_sql('balancing_authority_temp', con=engine, if_exists='replace', index=False) 
                 baadjustedvalues_df.to_sql('ba_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 baemissionrate_df.to_sql('ba_emission_rate_temp', con=engine, if_exists='replace', index=False)
@@ -95,6 +87,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     trans = conn.begin()
                     ba_cnt = conn.execute(text("select count(*) from balancing_authority;")).scalar()
                     
+                    # STEP THREE COUNT TO SEE IF THE TABLE IS EMPTY
                     baadjustedvalues_cnt = conn.execute(
                         text("select count(*) from ba_adjusted_values where year = :year"),
                         {"year": int(year)}
@@ -110,6 +103,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                         {"year": int(year)}
                     ).scalar()
 
+                    # STEP 4 CHECK CNT AND INSERT OR UPDATE THE TABLE
                     if ba_cnt == 0:
                         conn.execute(text("""
                             insert into balancing_authority (
@@ -127,123 +121,21 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                             where balancing_authority.bacode = bt.bacode;
                         """))
 
-                    # if baadjustedvalues_cnt == 0:
-                    #     try:
-                    #         conn.execute(text("""insert into ba_adjusted_values (
-                    #                                 bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
-                    #                                 bangenan, bangenoz, banoxan, banoxoz, baso2an,
-                    #                                 baco2an, bach4an, ban2oan, baco2eqa, bahgan
-                    #                             ) select bacode, year, bahtian, bahtioz, bahtiant, bahtiozt,
-                    #                                 bangenan, bangenoz, banoxan, banoxoz, baso2an,
-                    #                                 baco2an, bach4an, ban2oan, baco2eqa, bahgan 
-                    #                             from ba_adjusted_values_temp;"""))
-                    #     except Exception as e:
-                    #         print('Error inserting into ba_adjusted_values', e)
-                    #         return {"error": str(e)}
-                    # else:
-                    #     # conn.execute(text("""update ba_adjusted_values  
-                    #     #                     set bacode = b.bacode,
-                    #     #                     year = b.year,
-                    #     #                     bahtian = b.bahtian,
-                    #     #                     bahtioz = b.bahtioz,
-                    #     #                     bahtiant = b.bahtiant,
-                    #     #                     bahtiozt = b.bahtiozt,
-                    #     #                     bangenan = b.bangenan,
-                    #     #                     bangenoz = b.bangenoz,
-                    #     #                     banoxan = b.banoxan,
-                    #     #                     banoxoz = b.banoxoz,
-                    #     #                     baso2an = b.baso2an,
-                    #     #                     baco2an = b.baco2an,
-                    #     #                     bach4an = b.bach4an,
-                    #     #                     ban2oan = b.ban2oan,
-                    #     #                     baco2eqa = b.baco2eqa,
-                    #     #                     bahgan = b.bahgan
-                    #     #                     from ba_adjusted_values_temp b
-                    #     #                     where ba_adjusted_values.bacode = b.bacode
-                    #     #                     and ba_adjusted_values.year = b.year;"""))
-                    #     # test
-                       
-                        # sql = update_from_temp_table( "ba_adjusted_values", baadjustedvalues_df)
-                        # conn.execute(text(sql))    
+                    if baadjustedvalues_cnt == 0:
+                        
+                        sql = build_insert_from_temp_sql("ba_adjusted_values", baadjustedvalues_df)
+                        conn.execute(text(sql))  
+                    else:
+                        
+                        sql = update_from_temp_table( "ba_adjusted_values", baadjustedvalues_df)
+                        conn.execute(text(sql))    
 
                     if baemissionrate_cnt == 0:
-                        # conn.execute(text("""insert into ba_emission_rate (
-                        #     bacode
-                        #     ,banoxrta
-                        #     ,banoxrto
-                        #     ,baso2rta
-                        #     ,baco2rta
-                        #     ,bach4rta
-                        #     ,ban2orta
-                        #     ,bac2erta
-                        #     ,bahgrta 
-                        #     ,banoxra 
-                        #     ,banoxro 
-                        #     ,baso2ra 
-                        #     ,baco2ra 
-                        #     ,bach4ra 
-                        #     ,ban2ora 
-                        #     ,bac2era 
-                        #     ,bahgra  
-                        #     ,banoxcrt
-                        #     ,banoxcro
-                        #     ,baso2crt
-                        #     ,baco2crt
-                        #     ,bach4crt
-                        #     ,ban2ocrt
-                        #     ,bac2ecrt
-                        #     ,bahgcrt  
-                        # ) select 
-                        #     bacode
-                        #     ,banoxrta
-                        #     ,banoxrto
-                        #     ,baso2rta
-                        #     ,baco2rta
-                        #     ,bach4rta
-                        #     ,ban2orta
-                        #     ,bac2erta
-                        #     ,bahgrta 
-                        #     ,banoxra 
-                        #     ,banoxro 
-                        #     ,baso2ra 
-                        #     ,baco2ra 
-                        #     ,bach4ra 
-                        #     ,ban2ora 
-                        #     ,bac2era 
-                        #     ,bahgra  
-                        #     ,banoxcrt
-                        #     ,banoxcro
-                        #     ,baso2crt
-                        #     ,baco2crt
-                        #     ,bach4crt
-                        #     ,ban2ocrt
-                        #     ,bac2ecrt
-                        #     ,bahgcrt from ba_emission_rate_temp;""")) 
-
+                     
                         sql = build_insert_from_temp_sql("ba_emission_rate", baemissionrate_df)
                         conn.execute(text(sql))  
                     else:
-                        # conn.execute(text("""update ba_emission_rate  
-                        #                     set bacode = b.bacode,
-                        #                         banoxrta = b.banoxrta,
-                        #                         banoxrto = b.banoxrto,
-                        #                         baso2rta = b.baso2rta,
-                        #                         baco2rta = b.baco2rta,
-                        #                         bach4rta = b.bach4rta,
-                        #                         ban2orta = b.ban2orta,
-                        #                         bac2erta = b.bac2erta,
-                        #                         bahgrta = b.bahgrta,
-                        #                         banoxra = b.banoxra,
-                        #                         banoxro = b.banoxro,
-                        #                         baso2ra = b.baso2ra,
-                        #                         baco2ra = b.baco2ra,
-                        #                         bach4ra = b.bach4ra,
-                        #                         ban2ora = b.ban2ora,
-                        #                         bac2era = b.bac2era,
-                        #                         bahgra = b.bahgra
-                        #                     from ba_emission_rate_temp b
-                        #                     where ba_emission_rate.bacode = b.bacode
-                        #                     and ba_emission_rate.year = b.year;"""))
+                       
                         sql = update_from_temp_table("ba_emission_rate", baemissionrate_df)
                         conn.execute(text(sql))  
  
@@ -331,7 +223,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     #                         and ba_fuel_type_emission_rate.year = b.year;"""))
                          
 
-                 
+                    # STEP 5 DROP THE TEMP TABLES
                     conn.execute(text("drop table balancing_authority_temp;"))
                     conn.execute(text("drop table ba_adjusted_values_temp;")) 
                     conn.execute(text("drop table ba_emission_rate_temp;"))

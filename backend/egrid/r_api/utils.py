@@ -30,7 +30,7 @@ def update_from_temp_table(table, df):
         FROM {temp_table}
         WHERE {where_clause}
     """
-    print('sql to execute: ')
+    # print('sql to execute: ')
 
     print(sql.strip())  # For debugging only
 
