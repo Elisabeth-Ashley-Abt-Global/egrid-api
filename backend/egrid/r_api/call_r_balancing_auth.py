@@ -3,48 +3,9 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
+from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
-
-def update_from_temp_table(conn, table, df):
-    import pandas as pd
-
-    if df.empty:
-        raise ValueError("DataFrame is empty")
-
-    temp_table = f"{table}_temp"
-    row = df.iloc[0]
-    
-    # Columns to update: everything except join keys
-    join_keys = ["bacode", "year"]
-    update_cols = [col for col in df.columns if col not in join_keys]
-
-    if not update_cols:
-        raise ValueError("No columns to update")
-
-    set_clause = ", ".join([
-        f"{table}.{col} = {temp_table}.{col}" for col in update_cols
-    ])
-
-    where_clause = f"""
-        {table}.bacode = {temp_table}.bacode AND
-        {table}.year = {temp_table}.year
-    """
-
-    sql = f"""
-        UPDATE {table}
-        SET {set_clause}
-        FROM {temp_table}
-        WHERE {where_clause}
-    """
-    print('sql to execute: ')
-
-    print(sql.strip())  # For debugging only
-
-    return(sql)
-     
-
-
   
 def populate_balancing_auth_data(engine=None, api_url=None):
     print("*populate_balancing_auth_data")
@@ -202,62 +163,65 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     #     #                     and ba_adjusted_values.year = b.year;"""))
                     #     # test
                        
-                        sql = update_from_temp_table(conn, "ba_adjusted_values", baadjustedvalues_df)
-                        conn.execute(text(sql))    
+                        # sql = update_from_temp_table( "ba_adjusted_values", baadjustedvalues_df)
+                        # conn.execute(text(sql))    
 
                     if baemissionrate_cnt == 0:
-                        conn.execute(text("""insert into ba_emission_rate (
-                            bacode
-                            ,banoxrta
-                            ,banoxrto
-                            ,baso2rta
-                            ,baco2rta
-                            ,bach4rta
-                            ,ban2orta
-                            ,bac2erta
-                            ,bahgrta 
-                            ,banoxra 
-                            ,banoxro 
-                            ,baso2ra 
-                            ,baco2ra 
-                            ,bach4ra 
-                            ,ban2ora 
-                            ,bac2era 
-                            ,bahgra  
-                            ,banoxcrt
-                            ,banoxcro
-                            ,baso2crt
-                            ,baco2crt
-                            ,bach4crt
-                            ,ban2ocrt
-                            ,bac2ecrt
-                            ,bahgcrt  
-                        ) select 
-                            bacode
-                            ,banoxrta
-                            ,banoxrto
-                            ,baso2rta
-                            ,baco2rta
-                            ,bach4rta
-                            ,ban2orta
-                            ,bac2erta
-                            ,bahgrta 
-                            ,banoxra 
-                            ,banoxro 
-                            ,baso2ra 
-                            ,baco2ra 
-                            ,bach4ra 
-                            ,ban2ora 
-                            ,bac2era 
-                            ,bahgra  
-                            ,banoxcrt
-                            ,banoxcro
-                            ,baso2crt
-                            ,baco2crt
-                            ,bach4crt
-                            ,ban2ocrt
-                            ,bac2ecrt
-                            ,bahgcrt from ba_emission_rate_temp;"""))
+                        # conn.execute(text("""insert into ba_emission_rate (
+                        #     bacode
+                        #     ,banoxrta
+                        #     ,banoxrto
+                        #     ,baso2rta
+                        #     ,baco2rta
+                        #     ,bach4rta
+                        #     ,ban2orta
+                        #     ,bac2erta
+                        #     ,bahgrta 
+                        #     ,banoxra 
+                        #     ,banoxro 
+                        #     ,baso2ra 
+                        #     ,baco2ra 
+                        #     ,bach4ra 
+                        #     ,ban2ora 
+                        #     ,bac2era 
+                        #     ,bahgra  
+                        #     ,banoxcrt
+                        #     ,banoxcro
+                        #     ,baso2crt
+                        #     ,baco2crt
+                        #     ,bach4crt
+                        #     ,ban2ocrt
+                        #     ,bac2ecrt
+                        #     ,bahgcrt  
+                        # ) select 
+                        #     bacode
+                        #     ,banoxrta
+                        #     ,banoxrto
+                        #     ,baso2rta
+                        #     ,baco2rta
+                        #     ,bach4rta
+                        #     ,ban2orta
+                        #     ,bac2erta
+                        #     ,bahgrta 
+                        #     ,banoxra 
+                        #     ,banoxro 
+                        #     ,baso2ra 
+                        #     ,baco2ra 
+                        #     ,bach4ra 
+                        #     ,ban2ora 
+                        #     ,bac2era 
+                        #     ,bahgra  
+                        #     ,banoxcrt
+                        #     ,banoxcro
+                        #     ,baso2crt
+                        #     ,baco2crt
+                        #     ,bach4crt
+                        #     ,ban2ocrt
+                        #     ,bac2ecrt
+                        #     ,bahgcrt from ba_emission_rate_temp;""")) 
+
+                        sql = build_insert_from_temp_sql("ba_emission_rate", baemissionrate_df)
+                        conn.execute(text(sql))  
                     else:
                         # conn.execute(text("""update ba_emission_rate  
                         #                     set bacode = b.bacode,
@@ -280,7 +244,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                         #                     from ba_emission_rate_temp b
                         #                     where ba_emission_rate.bacode = b.bacode
                         #                     and ba_emission_rate.year = b.year;"""))
-                        sql = update_from_temp_table(conn, "ba_emission_rate", baemissionrate_df)
+                        sql = update_from_temp_table("ba_emission_rate", baemissionrate_df)
                         conn.execute(text(sql))  
  
                     # if ba_fuel_type_emission_rate_cnt == 0:
