@@ -60,17 +60,26 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                 print('Error in BaEmissionRate dataframe')
  
             try: 
-                bafueltypeemissionrate = df[['bacode', 'bacnoxrt', 'baonoxrt']] #,'bagnoxrt','bafsnxrt','bacnxort','baonxort','bagnxort','bafsnort','bacso2rt','baoso2rt','bagso2rt','bafss2rt','bacco2rt','baoco2rt','bagco2rt','bafsc2rt','bacch4rt','baoch4rt','bagch4rt','bafch4rt','bacn2ort','baon2ort','bagn2ort','bafn2ort','bacc2ert','baoc2ert','bagc2ert','bachgrt' ,'bafshgrt' ,'bacnoxr','baonoxr','bagnoxr','bafsnxr','bacnxor','baonxor','bagnxor','bafsnor','bacso2r','baoso2r','bagso2r','bafss2r','bacco2r','baoco2r','bagco2r','bafsc2r','bacch4r','baoch4r','bagch4r','bafch4r','bacn2or','baon2or','bagn2or','bafn2or','bacc2er','baoc2er','bagc2er','bafsc2er' ,'bachgr' ,'bafshgr' ,'year'
-                bafueltypeemissionrate = bafueltypeemissionrate.copy()
-                bafueltypeemissionrate.replace({"--": None, "N/A": None, "": None}, inplace=True)
+                bafueltypeemissionrate_df = df[['bacode', 'year', 'bacnoxrt','baonoxrt','bagnoxrt','bafsnxrt','bacnxort','baonxort','bagnxort',             
+                'bafsnort','bacso2rt','baoso2rt','bagso2rt','bafss2rt',  
+                'bacco2rt','baoco2rt','bagco2rt','bafsc2rt','bacch4rt','baoch4rt','bagch4rt',
+                'bafch4rt','bacn2ort','baon2ort','bagn2ort','bafn2ort','bacc2ert','baoc2ert','bagc2ert','bafsc2ert','bachgrt','bafshgrt',
+                'bacnoxr','baonoxr','bagnoxr','bafsnxr','bacnxor','baonxor','bagnxor','bafsnor','bacso2r','baoso2r','bagso2r','bafss2r','bacco2r',
+                'baoco2r','bagco2r','bafsc2r','bacch4r','baoch4r','bagch4r','bafch4r','bacn2or','baon2or','bagn2or','bafn2or','bacc2er','baoc2er','bagc2er',
+                'bafsc2er','bachgr','bafshgr']]
+                
+                bafueltypeemissionrate_df = bafueltypeemissionrate_df.copy()
+                bafueltypeemissionrate_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception:
-                print('Error in BaFuelTypeEmissionRate dataframe')
-            
+                print('Error in bafueltypeemissionrate_df dataframe')
+
+        
             try:
 
                 ba_df.to_sql('balancing_authority_temp', con=engine, if_exists='replace', index=False) 
                 baadjustedvalues_df.to_sql('ba_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 baemissionrate_df.to_sql('ba_emission_rate_temp', con=engine, if_exists='replace', index=False)
+                bafueltypeemissionrate_df.to_sql('ba_fuel_type_emission_rate_temp', con=engine, if_exists='replace', index=False)
                 
                 with engine.connect() as conn:
                     trans = conn.begin()
@@ -138,7 +147,6 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                                             where ba_adjusted_values.bacode = b.bacode
                                             and ba_adjusted_values.year = b.year;"""))
                         
-
                     if baemissionrate_cnt == 0:
                         conn.execute(text("""insert into ba_emission_rate (
                             bacode
@@ -214,9 +222,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                                             from ba_emission_rate_temp b
                                             where ba_emission_rate.bacode = b.bacode
                                             and ba_emission_rate.year = b.year;"""))
-                
-
-                    
+                 
                     conn.execute(text("drop table balancing_authority_temp;"))
                     conn.execute(text("drop table ba_adjusted_values_temp;")) 
                     conn.execute(text("drop table ba_emission_rate_temp;"))
