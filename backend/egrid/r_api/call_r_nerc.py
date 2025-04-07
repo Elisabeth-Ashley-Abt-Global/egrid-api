@@ -1,9 +1,10 @@
-import requests
-from egrid.models import NercRegion
+# File to communicate with the R API
+import requests  
+import logging
+import pandas as pd  
 from sqlalchemy import text 
-import requests 
-import logging 
-import pandas as pd 
+from .utils import update_from_temp_table, build_insert_from_temp_sql 
+
 
 logger = logging.getLogger('egrid')
  
@@ -95,7 +96,7 @@ def populate_nerc_data(engine=None, api_url=None):
             except Exception: 
                 print('Error in NercEmissionRate dataframe')
 
-            #NercFuelTypeEmissionRate
+            # NercFuelTypeEmissionRate
             try: 
                 nercfueltypeemissionrate_df = df[['nerc', 'nrcnoxrt', 'nronoxrt', 'nrgnoxrt', 'nrfsnxrt', 
                                                 'nrcnxort', 'nronxort', 'nrgnxort', 'nrfsnort', 
@@ -116,7 +117,7 @@ def populate_nerc_data(engine=None, api_url=None):
             except Exception: 
                 print('Error in NercFuelTypeEmissionRate dataframe')
 
-            #NercFuelTypeGeneration
+            # NercFuelTypeGeneration
             try: 
                 nercfueltypegeneration_df = df[['nerc', 'nrgenacl', 'nrgenaol', 'nrgenaso', 'nrgenagt',
                                                 'nrgenaof', 'nrgenaop', 'nrgenatn', 'nrgenatr', 
@@ -127,21 +128,21 @@ def populate_nerc_data(engine=None, api_url=None):
             except Exception: 
                 print('Error in NercFuelTypeGeneration dataframe')
 
-            #NercNonBaseloadEmissionRate
+            # NercNonBaseloadValues
             try:
-                nercnonbaseloademissionrate_df = df[['nerc', 'nrnbnox', 'nrnbnxo',
-                                                    'nrnbso2', 'nrnbco2', 'nrnbch4', 'nrnbn2o',   
-                                                    'nrnbc2e', 'nrnbhg', 'nrnbgncl', 'nrnbgnol', 'nrnbgngs',  
-                                                    'nrnbgnnc', 'nrnbgnhy', 'nrnbgnbm', 'nrnbgnwi',  
-                                                    'nrnbgnso', 'nrnbgngt', 'nrnbgnof', 'nrnbgnop',  
-                                                    'nrnbclpr', 'nrnbolpr', 'nrnbgspr', 'nrnbncpr',  
-                                                    'nrnbhypr', 'nrnbbmpr', 'nrnbwipr', 'nrnbsopr',  
-                                                    'nrnbgtpr', 'nrnbofpr', 'nrnboppr']].copy()
-                nercnonbaseloademissionrate_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
+                nercnonbaseloadvalues_df = df[['nerc', 'nrnbnox', 'nrnbnxo',
+                                                'nrnbso2', 'nrnbco2', 'nrnbch4', 'nrnbn2o',   
+                                                'nrnbc2e', 'nrnbhg', 'nrnbgncl', 'nrnbgnol', 'nrnbgngs',  
+                                                'nrnbgnnc', 'nrnbgnhy', 'nrnbgnbm', 'nrnbgnwi',  
+                                                'nrnbgnso', 'nrnbgngt', 'nrnbgnof', 'nrnbgnop',  
+                                                'nrnbclpr', 'nrnbolpr', 'nrnbgspr', 'nrnbncpr',  
+                                                'nrnbhypr', 'nrnbbmpr', 'nrnbwipr', 'nrnbsopr',  
+                                                'nrnbgtpr', 'nrnbofpr', 'nrnboppr']].copy()
+                nercnonbaseloadvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
-                print('Error in NercNonBaseloadEmissionRate dataframe')
+                print('Error in NercNonBaseloadValues dataframe')
 
-            #NercResourceMix
+            # NercResourceMix
             try: 
                 nercresourcemix_df = df[['nerc', 'nrclpr', 'nrolpr', 'nrgspr', 
                                         'nrncpr', 'nrhypr', 'nrbmpr', 'nrwipr', 
@@ -153,162 +154,129 @@ def populate_nerc_data(engine=None, api_url=None):
                 print('Error in NercResourceMix dataframe')
 
             try:
+                # build temp tables, replace will replace the table if it already exists
                 nerc_df.to_sql('nerc_temp', con=engine, if_exists='replace', index=False) 
                 nercadjustedvalues_df.to_sql('nerc_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 nercemissionrate_df.to_sql('nerc_emission_rate_temp', con=engine, if_exists='replace', index=False)
                 nercfueltypeemissionrate_df.to_sql('nerc_fuel_type_emission_rate_temp', con=engine, if_exists='replace', index=False)
                 nercfueltypegeneration_df.to_sql('nerc_fuel_type_generation_temp', con=engine, if_exists='replace', index=False)
-                nercnonbaseloademissionrate_df.to_sql('nerc_nonbaseload_emission_rate_temp', con=engine, if_exists='replace', index=False)
+                nercnonbaseloadvalues_df.to_sql('nerc_nonbaseload_values_temp', con=engine, if_exists='replace', index=False)
                 nercresourcemix_df.to_sql('nerc_resource_mix_temp', con=engine, if_exists='replace', index=False)
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-
                     nerc_cnt = conn.execute(text("select count(*) from nerc;")).scalar()
+                    
+                    # count to see if table is empty
                     nercadjustedvalues_cnt = conn.execute(
                         text("select count(*) from nerc_adjusted_values where year = :year"),
-                        {"year": year}
-                    ).scalar() 
+                        {"year": int(year)}
+                    ).scalar()  
+
                     nercemissionrate_cnt = conn.execute(
                         text("select count(*) from nerc_emission_rate where year = :year"),
-                        {"year": year}
-                    ).scalar() 
+                        {"year": int(year)}
+                    ).scalar()
+
                     nercfueltypeemissionrate_cnt = conn.execute(
                         text("select count(*) from nerc_fuel_type_emission_rate where year = :year"),
-                        {"year": year}
-                    ).scalar() 
+                        {"year": int(year)}
+                    ).scalar()
+
                     nercfueltypegeneration_cnt = conn.execute(
                         text("select count(*) from nerc_fuel_type_generation where year = :year"),
-                        {"year": year}
-                    ).scalar() 
-                    nercnonbaseloademissionrate_cnt = conn.execute(
-                        text("select count(*) from nerc_nonbaseload_emission_rate where year = :year"),
-                        {"year": year}
-                    ).scalar() 
+                        {"year": int(year)}
+                    ).scalar()
+
+                    nercnonbaseloadvalues_cnt = conn.execute(
+                        text("select count(*) from nerc_nonbaseload_values where year = :year"),
+                        {"year": int(year)}
+                    ).scalar()
+
                     nercresourcemix_cnt = conn.execute(
                         text("select count(*) from nerc_resource_mix where year = :year"),
-                        {"year": year}
-                    ).scalar() 
+                        {"year": int(year)}
+                    ).scalar()
 
-                    if nerc_cnt == 0:   
+                    # check count to insert or update the table
+                    if nerc_cnt == 0:
                         conn.execute(text("""
                             insert into nerc (
-                                nerc, nercname, nrnamepcap
-                            ) select nerc, nercname, nrnamepcap from nerc_temp;
+                                nerc, nrname, nrnamepcap
+                            ) select nerc, nrname, nrnamepcap 
+                            from balancing_authority_temp;
                         """))  
                     else:
                         conn.execute(text("""
-                            update nerc
+                            update balancing_authority 
                             set nerc = nerc_temp.nerc, 
-                                nercname = nerc_temp.nercname,
-                                nrnamepcap = nerc_temp.nrnamepcap
-                            from nerc_temp  
+                                nrname = nerc_temp.nrname,
+                                nrnamepcap = nerc_temp.nrnamepcap              
+                            from nerc_temp
                             where nerc.nerc = nerc_temp.nerc;
-                        """))
+                        """)) 
 
                     if nercadjustedvalues_cnt == 0:
-                        conn.execute(text("""
-                            insert into nerc_adjusted_values (
-                                nerc, nrhtian, nrhtioz, nrhtiant, 
-                                nrhtiozt, nrngenan, nrngenoz, nrngennb, 
-                                nrnoxan, nrnoxoz, nrso2an, nrco2an, 
-                                nrch4an, nrn2oan, nrco2eqa, nrhgan, year
-                            ) select nerc, nrhtian, nrhtioz, nrhtiant, 
-                                nrhtiozt, nrngenan, nrngenoz, nrngennb, 
-                                nrnoxan, nrnoxoz, nrso2an, nrco2an, 
-                                nrch4an, nrn2oan, nrco2eqa, nrhgan, year
-                            from nerc_adjusted_values_temp;
-                        """))
-                    else:   
-                        conn.execute(text("""  
-                            update nerc_adjusted_values
-                            set nerc = nerc_adjusted_values_temp.nerc,
-                                nrhtian = nerc_adjusted_values_temp.nrhtian, 
-                                nrhtioz = nerc_adjusted_values_temp.nrhtioz, 
-                                nrhtiant = nerc_adjusted_values_temp.nrhtiant, 
-                                nrhtiozt = nerc_adjusted_values_temp.nrhtiozt, 
-                                nrngenan = nerc_adjusted_values_temp.nrngenan,
-                                nrngenoz = nerc_adjusted_values_temp.nrngenoz, 
-                                nrngennb = nerc_adjusted_values_temp.nrngennb, 
-                                nrnoxan = nerc_adjusted_values_temp.nrnoxan, 
-                                nrnoxoz = nerc_adjusted_values_temp.nrnoxoz, 
-                                nrso2an = nerc_adjusted_values_temp.nrso2an, 
-                                nrco2an = nerc_adjusted_values_temp.nrco2an, 
-                                nrch4an = nerc_adjusted_values_temp.nrch4an, 
-                                nrn2oan = nerc_adjusted_values_temp.nrn2oan, 
-                                nrco2eqa = nerc_adjusted_values_temp.nrco2eqa, 
-                                nrhgan = nerc_adjusted_values_temp.nrhgan, 
-                                year = nerc_adjusted_values_temp.year
-                            from nerc_adjusted_values_temp 
-                            where nerc_adjusted_values.nerc = nerc_adjusted_values_temp.nerc 
-                                and nerc_adjusted_values.year = nerc_adjusted_values_temp.year;
-                        """))
+                        sql = build_insert_from_temp_sql("nerc_adjusted_values", nercadjustedvalues_df)
+                        conn.execute(text(sql))  
+                    else:
+                        sql = update_from_temp_table( "nerc_adjusted_values", nercadjustedvalues_df, "nerc")
+                        conn.execute(text(sql))    
 
                     if nercemissionrate_cnt == 0:
-                        conn.execute(text("""
-                            insert into nerc_emission_rate (
-                                nerc, nrnoxrta, nrnoxrto, nrso2rta, 
-                                nrco2rta, nrch4rta, nrn2orta, nrc2erta, 
-                                nrhgrta, nrnoxra, nrnoxro, nrso2ra,  
-                                nrco2ra, nrch4ra, nrn2ora, nrc2era,  
-                                nrhgra, nrnoxcrt, nrnoxcro, nrso2crt, 
-                                nrco2crt, nrch4crt, nrn2ocrt, nrc2ecrt, 
-                                nrhgcrt, year
-                            ) select nerc, nrnoxrta, nrnoxrto, nrso2rta, 
-                                nrco2rta, nrch4rta, nrn2orta, nrc2erta, 
-                                nrhgrta, nrnoxra, nrnoxro, nrso2ra,  
-                                nrco2ra, nrch4ra, nrn2ora, nrc2era,  
-                                nrhgra, nrnoxcrt, nrnoxcro, nrso2crt, 
-                                nrco2crt, nrch4crt, nrn2ocrt, nrc2ecrt, 
-                                nrhgcrt, year
-                            from nerc_emission_rate_temp;
-                        """))
-                    else:   
-                        conn.execute(text("""  
-                            update nerc_emission_rate
-                            set nerc = nerc_emission_rate_temp.nerc, 
-                                nrnoxrta = nerc_emission_rate_temp.nrnoxrta, 
-                                nrnoxrto = nerc_emission_rate_temp.nrnoxrto, 
-                                nrso2rta = nerc_emission_rate_temp.nrso2rta, 
-                                nrco2rta = nerc_emission_rate_temp.nrco2rta, 
-                                nrch4rta = nerc_emission_rate_temp.nrch4rta, 
-                                nrn2orta = nerc_emission_rate_temp.nrn2orta, 
-                                nrc2erta = nerc_emission_rate_temp.nrc2erta, 
-                                nrhgrta = nerc_emission_rate_temp.nrhgrta, 
-                                nrnoxra = nerc_emission_rate_temp.nrnoxra,
-                                nrnoxro = nerc_emission_rate_temp.nrnoxro, 
-                                nrso2ra = nerc_emission_rate_temp.nrso2ra,  
-                                nrco2ra = nerc_emission_rate_temp.nrco2ra, 
-                                nrch4ra = nerc_emission_rate_temp.nrch4ra, 
-                                nrn2ora = nerc_emission_rate_temp.nrn2ora, 
-                                nrc2era = nerc_emission_rate_temp.nrc2era,  
-                                nrhgra = nerc_emission_rate_temp.nrhgra, 
-                                nrnoxcrt = nerc_emission_rate_temp.nrnoxcrt, 
-                                nrnoxcro = nerc_emission_rate_temp.nrnoxcro, 
-                                nrso2crt = nerc_emission_rate_temp.nrso2crt, 
-                                nrco2crt = nerc_emission_rate_temp.nrco2crt, 
-                                nrch4crt = nerc_emission_rate_temp.nrch4crt, 
-                                nrn2ocrt = nerc_emission_rate_temp.nrn2ocrt, 
-                                nrc2ecrt = nerc_emission_rate_temp.nrc2ecrt, 
-                                nrhgcrt = nerc_emission_rate_temp.nrhgcrt, 
-                                year = nerc_emission_rate_temp.year
-                            from nerc_emission_rate_temp 
-                            where nerc_emission_rate.nerc = nerc_emission_rate_temp.nerc 
-                                and nerc_emission_rate.year = nerc_emission_rate_temp.year;
-                        """))
-  
+                        sql = build_insert_from_temp_sql("nerc_emission_rate", nercemissionrate_df)
+                        conn.execute(text(sql))  
+                    else:
+                        sql = update_from_temp_table("nerc_emission_rate", nercemissionrate_df, "nerc")
+                        conn.execute(text(sql))  
+
+                    if nercfueltypeemissionrate_cnt == 0:
+                        sql = build_insert_from_temp_sql("nerc_fuel_type_emission_rate", nercfueltypeemissionrate_df)
+                        conn.execute(text(sql))  
+                    else:
+                        sql = update_from_temp_table("nerc_fuel_type_emission_rate", nercfueltypeemissionrate_df, "nerc")
+                        conn.execute(text(sql)) 
+
+                    if nercfueltypegeneration_cnt == 0:
+                        sql = build_insert_from_temp_sql("nerc_fuel_type_generation", nercfueltypegeneration_df)
+                        conn.execute(text(sql))  
+                    else:
+                        sql = update_from_temp_table("nerc_fuel_type_generation", nercfueltypegeneration_df, "nerc")
+                        conn.execute(text(sql)) 
+
+                    if nercnonbaseloadvalues_cnt == 0:
+                        sql = build_insert_from_temp_sql("nerc_nonbaseload_values", nercnonbaseloadvalues_df)
+                        conn.execute(text(sql))  
+                    else:
+                        sql = update_from_temp_table("nerc_nonbaseload_values", nercnonbaseloadvalues_df, "nerc")
+                        conn.execute(text(sql)) 
+
+                    if nercresourcemix_cnt == 0:
+                        sql = build_insert_from_temp_sql("nerc_resource_mix", nercresourcemix_df)
+                        conn.execute(text(sql))  
+                    else:
+                        sql = update_from_temp_table("nerc_resource_mix", nercresourcemix_df, "nerc")
+                        conn.execute(text(sql)) 
+
+                    # drop temp tables
                     conn.execute(text("drop table nerc_temp;"))
-                    conn.execute(text("drop table nerc_adjusted_values_temp;"))
- 
+                    conn.execute(text("drop table nerc_adjusted_values_temp;")) 
+                    conn.execute(text("drop table nerc_emission_rate_temp;"))
+                    conn.execute(text("drop table nerc_fuel_type_emission_rate_temp"))
+                    conn.execute(text("drop table nerc_fuel_type_generation_temp"))
+                    conn.execute(text("drop table nerc_nonbaseload_values_temp"))
+                    conn.execute(text("drop table nerc_resource_mix_temp"))
                     trans.commit() 
- 
-                print('success')
-                return {"success": True, "message": "Data successfully inserted into the NERC table."}
+
+                print('Success populating nerc data.')  
+                  
             except Exception as e:
-                print('error', e)
-                return {"error": str(e)}
+                print('Error populating nerc data.', e)
+                return {"error": str(e)}  
+
+            return {"success": True, "message": "Data successfully inserted into the NERC table."}
         else:
-            print('error')
-            return {"error": "R API returned an error: {}".format(data.get('error'))} 
+            return {"error": f"Failed to connect to R API with status code {response.status_code}"}
+    
     except Exception as e:
         return {"error": str(e)}

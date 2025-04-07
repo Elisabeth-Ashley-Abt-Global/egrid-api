@@ -1,5 +1,5 @@
 
-def update_from_temp_table(table, df):
+def update_from_temp_table(table, df, unique_field):
     import pandas as pd
 
     if df.empty:
@@ -9,7 +9,7 @@ def update_from_temp_table(table, df):
     row = df.iloc[0]
     
     # Columns to update: everything except join keys
-    join_keys = ["bacode", "year"]
+    join_keys = [unique_field, "year"]
     update_cols = [col for col in df.columns if col not in join_keys]
 
     if not update_cols:
@@ -20,7 +20,7 @@ def update_from_temp_table(table, df):
     ])
 
     where_clause = f"""
-        {table}.bacode = {temp_table}.bacode AND
+        {table}.{unique_field} = {temp_table}.{unique_field} AND
         {table}.year = {temp_table}.year
     """
 

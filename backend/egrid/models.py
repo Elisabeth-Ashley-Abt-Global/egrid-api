@@ -35,7 +35,7 @@ class BaAdjustedValues(models.Model):
     bach4an    = models.FloatField(null=True, blank=True)
     ban2oan    = models.FloatField(null=True, blank=True)
     baco2eqa   = models.FloatField(null=True, blank=True)
-    bahgan     = models.CharField(max_length=2, null=True, blank=True)  
+    bahgan     = models.FloatField(null=True, blank=True)  
     # created_on = models.DateTimeField(auto_now_add=True)  # Automatically sets the field to the current timestamp only when the record is first created.
     # updated_on = models.DateTimeField(auto_now=True) # Automatically updates the field to the current timestamp every time the record is saved.
     year = models.IntegerField(null=True, blank=True)  # Year
@@ -226,11 +226,11 @@ class BaFuelTypeGeneration(models.Model):
         db_table = 'ba_fuel_type_generation'
 
 
-class BaNonBaseloadEmissionRate(models.Model):
+class BaNonBaseloadValues(models.Model):
     id       =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
-        on_delete=models.CASCADE,   # Deletes BaNonBaseloadEmissionRate records if the related BalancingAuthority is deleted
+        on_delete=models.CASCADE,   # Deletes BaNonBaseloadValues records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
     )
     banbnox  = models.FloatField(null=True, blank=True)
@@ -269,7 +269,7 @@ class BaNonBaseloadEmissionRate(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'ba_nonbaseload_emission_rate'
+        db_table = 'ba_nonbaseload_values'
 
 
 class BaResourceMix(models.Model):
@@ -549,11 +549,11 @@ class NercFuelTypeGeneration(models.Model):
         db_table = 'nerc_fuel_type_generation'
 
 
-class NercNonBaseloadEmissionRate(models.Model): 
+class NercNonBaseloadValues(models.Model): 
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
-                on_delete=models.CASCADE,  # Deletes NercNonBaseloadEmissionRate records if the related Plant is deleted
+                on_delete=models.CASCADE,  # Deletes NercNonBaseloadValues records if the related Plant is deleted
                 db_column='nerc'          
             ) 
     nrnbnox  = models.FloatField(null=True, blank=True) 
@@ -592,7 +592,7 @@ class NercNonBaseloadEmissionRate(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'nerc_nonbaseload_emission_rate'
+        db_table = 'nerc_nonbaseload_values'
 
 
 class NercResourceMix(models.Model): 
@@ -1043,7 +1043,7 @@ class StateFuelTypeGeneration(models.Model):
         db_table = 'state_fuel_type_generation'
 
 
-class StateNonBaseloadEmissionRate(models.Model): 
+class StateNonBaseloadValues(models.Model): 
     id = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
@@ -1086,7 +1086,7 @@ class StateNonBaseloadEmissionRate(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'state_nonbaseload_emission_rate'
+        db_table = 'state_nonbaseload_values'
 
 class StateResourceMix(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -1269,7 +1269,7 @@ class SubrgnFuelTypeGeneration(models.Model):
     id = models.AutoField(primary_key=True)
     subrgn = models.ForeignKey(
                 Subregion,
-                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
+                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeGeneration records if the related Plant is deleted
                 db_column='subrgn'          
             ) 
     srgenacl = models.FloatField(blank=True, null=True)
@@ -1299,11 +1299,11 @@ class SubrgnFuelTypeGeneration(models.Model):
         db_table = 'subrgn_fuel_type_generation'
 
 
-class SubrgnNonBaseloadEmissionRate(models.Model): 
+class SubrgnNonBaseloadValues(models.Model): 
     id = models.AutoField(primary_key=True)
     subrgn = models.ForeignKey(
                 Subregion,
-                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
+                on_delete=models.CASCADE,  # Deletes SubrgnNonBaseloadValues records if the related Plant is deleted
                 db_column='subrgn'          
             ) 
     srnbnox  = models.FloatField(null=True, blank=True) 
@@ -1342,13 +1342,13 @@ class SubrgnNonBaseloadEmissionRate(models.Model):
         return self.name
 
     class Meta:
-        db_table = 'subrgn_nonbaseload_emission_rate'
+        db_table = 'subrgn_nonbaseload_values'
 
 class SubrgnResourceMix(models.Model): 
     id = models.AutoField(primary_key=True)
     subrgn = models.ForeignKey(
                 Subregion,
-                on_delete=models.CASCADE,  # Deletes SubrgnFuelTypeEmissionRate records if the related Plant is deleted
+                on_delete=models.CASCADE,  # Deletes SubrgnResourceMix records if the related Plant is deleted
                 db_column='subrgn'          
             )  
     srclpr = models.FloatField(blank=True, null=True)
@@ -1412,12 +1412,13 @@ class Unit(models.Model):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
 
     class Meta:
-        db_table = "unit"
+        db_table = 'unit'
         constraints = [
             models.UniqueConstraint(fields=["unitid", "orispl", "prmvr"], name="unit_composite_pk")
         ]
 
 class US(models.Model):
+    year = models.IntegerField
     usnamepcap = models.FloatField(null=True, blank=True)
 
     def __str__(self):
@@ -1425,6 +1426,9 @@ class US(models.Model):
 
     class Meta:
         db_table = 'us'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
 
 
 class UsAdjustedValues(models.Model): 
@@ -1452,6 +1456,9 @@ class UsAdjustedValues(models.Model):
 
     class Meta:
         db_table = 'us_adjusted_values'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
 
 
 class UsEmissionRate(models.Model): 
@@ -1480,6 +1487,7 @@ class UsEmissionRate(models.Model):
     usn2ocrt = models.FloatField(blank=True, null=True)
     usc2ecrt = models.FloatField(blank=True, null=True)
     ushgcrt  = models.CharField(blank=True, null=True)
+    usnamepcap = models.FloatField(blank=True, null=True)
     year     = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
@@ -1487,6 +1495,9 @@ class UsEmissionRate(models.Model):
 
     class Meta:
         db_table = 'us_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
   
 
 class UsFuelTypeEmissionRate(models.Model):  
@@ -1551,13 +1562,17 @@ class UsFuelTypeEmissionRate(models.Model):
     usfsc2er  = models.FloatField(blank=True, null=True)
     uschgr    = models.CharField(blank=True, null=True)
     usfshgr   = models.CharField(blank=True, null=True)
-    year      = models.IntegerField(null=True, blank=True)
+    usnamepcap = models.FloatField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
     class Meta:
         db_table = 'us_fuel_type_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
 
 
 class UsFuelTypeGeneration(models.Model): 
@@ -1580,16 +1595,20 @@ class UsFuelTypeGeneration(models.Model):
     usgenahy = models.FloatField(blank=True, null=True)
     usgenabm = models.FloatField(blank=True, null=True)
     usgenawi = models.FloatField(blank=True, null=True)
-    year     = models.IntegerField(null=True, blank=True)  
+    usnamepcap = models.FloatField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True) 
 
     def __str__(self):
         return self.name
 
     class Meta:
         db_table = 'us_fuel_type_generation'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
 
 
-class UsNonBaseloadEmissionRate(models.Model): 
+class UsNonBaseloadValues(models.Model): 
     id = models.AutoField(primary_key=True)
     usnbnox  = models.FloatField(null=True, blank=True) 
     usnbnxo  = models.FloatField(null=True, blank=True) 
@@ -1621,13 +1640,17 @@ class UsNonBaseloadEmissionRate(models.Model):
     usnbgtpr = models.FloatField(null=True, blank=True) 
     usnbofpr = models.FloatField(null=True, blank=True) 
     usnboppr = models.FloatField(null=True, blank=True) 
-    year     = models.IntegerField(null=True, blank=True)  
+    usnamepcap = models.FloatField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True) 
 
     def __str__(self):
         return self.name
 
     class Meta:
-        db_table = 'us_nonbaseload_emission_rate'
+        db_table = 'us_nonbaseload_values'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
 
 
 class UsResourceMix(models.Model): 
@@ -1650,10 +1673,14 @@ class UsResourceMix(models.Model):
     uscypr = models.FloatField(blank=True, null=True)
     uscnpr = models.FloatField(blank=True, null=True)
     uscopr = models.FloatField(blank=True, null=True)
-    year   = models.IntegerField(null=True, blank=True)
+    usnamepcap = models.FloatField(blank=True, null=True)
+    year     = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
     class Meta:
         db_table = 'us_resource_mix'
+        constraints = [
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+        ]
