@@ -1451,9 +1451,9 @@ class UnitUnadjustedValues(models.Model):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
 
     class Meta:
-        db_table = 'unit'
+        db_table = 'unit_unadjusted_values'
         constraints = [
-            models.UniqueConstraint(fields=["unitid", "orispl", "prmvr"], name="unit_composite_pk")
+            models.UniqueConstraint(fields=["unitid", "orispl", "prmvr", "year"], name="unit_year_composite_pk")
         ]
 
 class US(models.Model):

@@ -20,7 +20,7 @@ def populate_plant_data(engine=None, api_url=None):
             plant_data = data.get('data', [])
             df = pd.DataFrame(plant_data) 
 
-            cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt' ]
+            cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
             cast_to_float = ['lat', 'lon', 'plhtian', 'plhtioz',
                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
                             'plngennb', 'plnoxan', 'plnoxoz', 'plso2an',
