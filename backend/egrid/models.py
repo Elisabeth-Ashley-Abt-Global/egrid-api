@@ -357,7 +357,7 @@ class Generation(models.Model):
 
 class NercRegion(models.Model):
     nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
-    nerc_name = models.CharField(max_length=500, null=False, blank=False)
+    nercname = models.CharField(max_length=500, null=False, blank=False)
     nrnamepcap = models.FloatField(null=True, blank=True)
 
     def __str__(self):
@@ -371,6 +371,7 @@ class NercAdjustedValues(models.Model):
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
+                to_field='nerc',
                 on_delete=models.CASCADE,  # Deletes NercAdjustedValues records if the related Plant is deleted
                 db_column='nerc'          
             ) 
@@ -403,6 +404,7 @@ class NercEmissionRate(models.Model):
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
+                to_field='nerc',
                 on_delete=models.CASCADE,  # Deletes NercEmissionRate records if the related Plant is deleted
                 db_column='nerc'          
             ) 
@@ -443,6 +445,7 @@ class NercFuelTypeEmissionRate(models.Model):
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
+                to_field='nerc',
                 on_delete=models.CASCADE,  # Deletes NercFuelTypeEmissionRate records if the related Plant is deleted
                 db_column='nerc'          
             ) 
@@ -519,6 +522,7 @@ class NercFuelTypeGeneration(models.Model):
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
+                to_field='nerc',
                 on_delete=models.CASCADE,  # Deletes NercFuelTypeGeneration records if the related Plant is deleted
                 db_column='nerc'          
             ) 
@@ -553,6 +557,7 @@ class NercNonBaseloadValues(models.Model):
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
+                to_field='nerc',
                 on_delete=models.CASCADE,  # Deletes NercNonBaseloadValues records if the related Plant is deleted
                 db_column='nerc'          
             ) 
@@ -599,6 +604,7 @@ class NercResourceMix(models.Model):
     id = models.AutoField(primary_key=True)
     nerc = models.ForeignKey(
                 NercRegion,
+                to_field='nerc',
                 on_delete=models.CASCADE,  # Deletes NercResourceMix records if the related Plant is deleted
                 db_column='nerc'          
             )  

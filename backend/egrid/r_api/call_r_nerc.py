@@ -70,8 +70,10 @@ def populate_nerc_data(engine=None, api_url=None):
 
             year = df['year'].unique()[0] 
             print('year ', year)
-
-            nerc_df = df[['nerc', 'nerc_name', 'nrnamepcap']].copy() 
+            # cast nerc to char
+            df['nerc'] = df['nerc'].astype(str).str.strip()
+            
+            nerc_df = df[['nerc', 'nercname', 'nrnamepcap']].copy() 
 
             # NercAdjustedValues
             try: 
@@ -202,15 +204,15 @@ def populate_nerc_data(engine=None, api_url=None):
                     if nerc_cnt == 0:
                         conn.execute(text("""
                             insert into nerc_region (
-                                nerc, nerc_name, nrnamepcap
-                            ) select nerc, nerc_name, nrnamepcap 
+                                nerc, nercname, nrnamepcap
+                            ) select nerc, nercname, nrnamepcap 
                             from nerc_region_temp;
                         """))  
                     else:
                         conn.execute(text("""
                             update balancing_authority 
                             set nerc = nrt.nerc, 
-                                nerc_name = nrt.nerc_name,
+                                nercname = nrt.nercname,
                                 nrnamepcap = nrt.nrnamepcap              
                             from nerc_region_temp nrt
                             where nerc.nerc = nrt.nerc;
