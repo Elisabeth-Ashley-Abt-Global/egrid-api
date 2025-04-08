@@ -1418,7 +1418,7 @@ class Unit(models.Model):
         ]
 
 class US(models.Model):
-    year = models.IntegerField
+    year = models.IntegerField()
     usnamepcap = models.FloatField(null=True, blank=True)
 
     def __str__(self):
@@ -1457,7 +1457,7 @@ class UsAdjustedValues(models.Model):
     class Meta:
         db_table = 'us_adjusted_values'
         constraints = [
-            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="usadjustedvalues_composite_pk")
         ]
 
 
@@ -1496,7 +1496,7 @@ class UsEmissionRate(models.Model):
     class Meta:
         db_table = 'us_emission_rate'
         constraints = [
-            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="usemissionrate_composite_pk")
         ]
   
 
@@ -1571,7 +1571,7 @@ class UsFuelTypeEmissionRate(models.Model):
     class Meta:
         db_table = 'us_fuel_type_emission_rate'
         constraints = [
-            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="usfueltypeemissionrate_composite_pk")
         ]
 
 
@@ -1604,7 +1604,7 @@ class UsFuelTypeGeneration(models.Model):
     class Meta:
         db_table = 'us_fuel_type_generation'
         constraints = [
-            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="usfueltypegeneration_composite_pk")
         ]
 
 
@@ -1649,7 +1649,7 @@ class UsNonBaseloadValues(models.Model):
     class Meta:
         db_table = 'us_nonbaseload_values'
         constraints = [
-            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="usnonbaseloadvalues_composite_pk")
         ]
 
 
@@ -1682,5 +1682,5 @@ class UsResourceMix(models.Model):
     class Meta:
         db_table = 'us_resource_mix'
         constraints = [
-            models.UniqueConstraint(fields=["usnamepcap", "year"], name="us_composite_pk")
+            models.UniqueConstraint(fields=["usnamepcap", "year"], name="usresourcemix_composite_pk")
         ]

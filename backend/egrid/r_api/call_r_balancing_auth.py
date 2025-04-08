@@ -191,11 +191,11 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update balancing_authority 
-                            set bacode = balancing_authority_temp.bacode, 
-                                baname = balacing_authority_temp.baname,
-                                banamepcap = balancing_authority_temp.banamepcap              
-                            from balancing_authority_temp 
-                            where balancing_authority.bacode = balancing_authority_temp.bacode;
+                            set bacode = bt.bacode, 
+                                baname = bt.baname,
+                                banamepcap = bt.banamepcap              
+                            from balancing_authority_temp bt
+                            where bt.bacode = bt.bacode;
                         """)) 
 
                     if baadjustedvalues_cnt == 0:
