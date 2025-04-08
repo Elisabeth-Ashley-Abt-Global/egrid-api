@@ -71,7 +71,7 @@ def populate_nerc_data(engine=None, api_url=None):
             year = df['year'].unique()[0] 
             print('year ', year)
 
-            nerc_df = df[['nerc', 'nercname', 'nrnamepcap']].copy() 
+            nerc_df = df[['nerc', 'nerc_name', 'nrnamepcap']].copy() 
 
             # NercAdjustedValues
             try: 
@@ -155,7 +155,7 @@ def populate_nerc_data(engine=None, api_url=None):
 
             try:
                 # build temp tables, replace will replace the table if it already exists
-                nerc_df.to_sql('nerc_temp', con=engine, if_exists='replace', index=False) 
+                nerc_df.to_sql('nerc_region_temp', con=engine, if_exists='replace', index=False) 
                 nercadjustedvalues_df.to_sql('nerc_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 nercemissionrate_df.to_sql('nerc_emission_rate_temp', con=engine, if_exists='replace', index=False)
                 nercfueltypeemissionrate_df.to_sql('nerc_fuel_type_emission_rate_temp', con=engine, if_exists='replace', index=False)
@@ -165,7 +165,7 @@ def populate_nerc_data(engine=None, api_url=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    nerc_cnt = conn.execute(text("select count(*) from nerc;")).scalar()
+                    nerc_cnt = conn.execute(text("select count(*) from nerc_region;")).scalar()
                     
                     # count to see if table is empty
                     nercadjustedvalues_cnt = conn.execute(
@@ -201,18 +201,18 @@ def populate_nerc_data(engine=None, api_url=None):
                     # check count to insert or update the table
                     if nerc_cnt == 0:
                         conn.execute(text("""
-                            insert into nerc (
-                                nerc, nrname, nrnamepcap
-                            ) select nerc, nrname, nrnamepcap 
-                            from balancing_authority_temp;
+                            insert into nerc_region (
+                                nerc, nerc_name, nrnamepcap
+                            ) select nerc, nerc_name, nrnamepcap 
+                            from nerc_region_temp;
                         """))  
                     else:
                         conn.execute(text("""
                             update balancing_authority 
                             set nerc = nrt.nerc, 
-                                nrname = nrt.nrname,
+                                nerc_name = nrt.nerc_name,
                                 nrnamepcap = nrt.nrnamepcap              
-                            from nerc_temp nrt
+                            from nerc_region_temp nrt
                             where nerc.nerc = nrt.nerc;
                         """)) 
 
@@ -259,7 +259,7 @@ def populate_nerc_data(engine=None, api_url=None):
                         conn.execute(text(sql)) 
 
                     # drop temp tables
-                    conn.execute(text("drop table nerc_temp;"))
+                    conn.execute(text("drop table nerc_region_temp;"))
                     conn.execute(text("drop table nerc_adjusted_values_temp;")) 
                     conn.execute(text("drop table nerc_emission_rate_temp;"))
                     conn.execute(text("drop table nerc_fuel_type_emission_rate_temp"))

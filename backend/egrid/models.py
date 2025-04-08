@@ -1446,6 +1446,7 @@ class UnitUnadjustedValues(models.Model):
     hgctldv  = models.CharField(max_length=200, null=True, blank=True)
     untyronl = models.IntegerField(null=True, blank=True)
     stackht  = models.FloatField(null=True, blank=True)
+    year   = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
