@@ -26,7 +26,7 @@ def populate_generator_data(engine=None, api_url=None):
             print('year ', year)
             # Cast columns to appropriate types
             cast_to_float = ['seqgen', 'namepcap', 'cfact', 'genntan', 'genntoz']
-            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year']
+            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year', 'seqgen']
  
             for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
@@ -40,8 +40,8 @@ def populate_generator_data(engine=None, api_url=None):
             gen_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
 
             generation_df = df[['genid','orispl','year','numblr',
-                                    'genstat', 'prmvr', 'fuelg1', 'namepcap' ,'cfact',
-                                    'genntan', 'genntoz', 'genersrc', 'genyronl', 'genyrret']]
+                                'genstat', 'prmvr', 'fuelg1', 'namepcap' ,'cfact',
+                                'genntan', 'genntoz', 'genersrc', 'genyronl', 'genyrret']]
             
             try: 
                 gen_df.to_sql('generator_temp', con=engine, if_exists='replace', index=False) 

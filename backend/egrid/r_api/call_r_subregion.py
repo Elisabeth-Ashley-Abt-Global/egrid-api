@@ -8,7 +8,7 @@ from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
  
-def populate_state_data(engine=None, api_url=None): 
+def populate_subregion_data(engine=None, api_url=None): 
     print('populate_subregion_data')
     logger.debug("*populate_subregion_data")
 
@@ -204,7 +204,7 @@ def populate_state_data(engine=None, api_url=None):
                     # check count to insert or update the table
                     if subregion_cnt == 0:
                         conn.execute(text("""
-                            insert into state (
+                            insert into subregion (
                                 subrgn, srname, srnamepcap
                             ) select subrgn, srname, srnamepcap
                             from subregion_temp;
@@ -223,42 +223,42 @@ def populate_state_data(engine=None, api_url=None):
                         sql = build_insert_from_temp_sql("subrgn_adjusted_values", subrgnadjustedvalues_df)
                         conn.execute(text(sql))  
                     else:
-                        sql = update_from_temp_table( "subrgn_adjusted_values", subrgnadjustedvalues_df)
+                        sql = update_from_temp_table( "subrgn_adjusted_values", subrgnadjustedvalues_df, 'subrgn')
                         conn.execute(text(sql))    
 
                     if subrgnemissionrate_cnt == 0:
                         sql = build_insert_from_temp_sql("subrgn_emission_rate", subrgnemissionrate_df)
                         conn.execute(text(sql))  
                     else:
-                        sql = update_from_temp_table("subrgn_emission_rate", subrgnemissionrate_df)
+                        sql = update_from_temp_table("subrgn_emission_rate", subrgnemissionrate_df, 'subrgn')
                         conn.execute(text(sql))  
 
                     if subrgnfueltypeemissionrate_cnt == 0:
                         sql = build_insert_from_temp_sql("subrgn_fuel_type_emission_rate", subrgnfueltypeemissionrate_df)
                         conn.execute(text(sql))  
                     else:
-                        sql = update_from_temp_table("subrgn_fuel_type_emission_rate", subrgnfueltypeemissionrate_df)
+                        sql = update_from_temp_table("subrgn_fuel_type_emission_rate", subrgnfueltypeemissionrate_df, 'subrgn')
                         conn.execute(text(sql)) 
 
                     if subrgnfueltypegeneration_cnt == 0:
                         sql = build_insert_from_temp_sql("subrgn_fuel_type_generation", subrgnfueltypegeneration_df)
                         conn.execute(text(sql))  
                     else:
-                        sql = update_from_temp_table("subrgn_fuel_type_generation", subrgnfueltypegeneration_df)
+                        sql = update_from_temp_table("subrgn_fuel_type_generation", subrgnfueltypegeneration_df, 'subrgn')
                         conn.execute(text(sql)) 
 
                     if subrgnnonbaseloadvalues_cnt == 0:
                         sql = build_insert_from_temp_sql("subrgn_nonbaseload_values", subrgnnonbaseloadvalues_df)
                         conn.execute(text(sql))  
                     else:
-                        sql = update_from_temp_table("subrgn_nonbaseload_values", subrgnnonbaseloadvalues_df)
+                        sql = update_from_temp_table("subrgn_nonbaseload_values", subrgnnonbaseloadvalues_df, 'subrgn')
                         conn.execute(text(sql)) 
 
                     if subrgnresourcemix_cnt == 0:
                         sql = build_insert_from_temp_sql("subrgn_resource_mix", subrgnresourcemix_df)
                         conn.execute(text(sql))  
                     else:
-                        sql = update_from_temp_table("subrgn_resource_mix", subrgnresourcemix_df)
+                        sql = update_from_temp_table("subrgn_resource_mix", subrgnresourcemix_df, 'subrgn')
                         conn.execute(text(sql)) 
 
                     # drop temp tables

@@ -731,10 +731,10 @@ class PlantFuelTypeGeneration (models.Model):
     plgenaop = models.FloatField(null=True, blank=True)
     plgenacy = models.FloatField(null=True, blank=True) 
     plgenacn = models.FloatField(null=True, blank=True) 
-    plgenaco = models.FloatField(blank=True, null=True)
+    plgenaco = models.FloatField(null=True, blank=True)
     plgenatn = models.FloatField(null=True, blank=True) 
     plgenatr = models.FloatField(null=True, blank=True) 
-    plgenato = models.FloatField(blank=True, null=True)
+    plgenato = models.FloatField(null=True, blank=True)
     plgenath = models.FloatField(null=True, blank=True) 
     year     = models.IntegerField(null=True, blank=True)  # Year
  
@@ -752,24 +752,24 @@ class PlantResourceMix(models.Model):
                 on_delete=models.CASCADE,  # Deletes PlantResourceMix records if the related Plant is deleted
                 db_column='orispl'          
             )
-    plclpr = models.FloatField(blank=True, null=True)
-    plolpr = models.FloatField(blank=True, null=True)
-    plgspr = models.FloatField(blank=True, null=True)
-    plncpr = models.FloatField(blank=True, null=True)
-    plhypr = models.FloatField(blank=True, null=True)
-    plbmpr = models.FloatField(blank=True, null=True)
-    plwipr = models.FloatField(blank=True, null=True)
-    plsopr = models.FloatField(blank=True, null=True)
-    plgtpr = models.FloatField(blank=True, null=True)
-    plofpr = models.FloatField(blank=True, null=True)
-    ploppr = models.FloatField(blank=True, null=True)
-    pltnpr = models.FloatField(blank=True, null=True)
-    pltrpr = models.FloatField(blank=True, null=True)
-    pltopr = models.FloatField(blank=True, null=True)
-    plthpr = models.FloatField(blank=True, null=True)
-    plcypr = models.FloatField(blank=True, null=True)
-    plcnpr = models.FloatField(blank=True, null=True)
-    plcopr = models.FloatField(blank=True, null=True)
+    plclpr = models.FloatField(null=True, blank=True)
+    plolpr = models.FloatField(null=True, blank=True)
+    plgspr = models.FloatField(null=True, blank=True)
+    plncpr = models.FloatField(null=True, blank=True)
+    plhypr = models.FloatField(null=True, blank=True)
+    plbmpr = models.FloatField(null=True, blank=True)
+    plwipr = models.FloatField(null=True, blank=True)
+    plsopr = models.FloatField(null=True, blank=True)
+    plgtpr = models.FloatField(null=True, blank=True)
+    plofpr = models.FloatField(null=True, blank=True)
+    ploppr = models.FloatField(null=True, blank=True)
+    pltnpr = models.FloatField(null=True, blank=True)
+    pltrpr = models.FloatField(null=True, blank=True)
+    pltopr = models.FloatField(null=True, blank=True)
+    plthpr = models.FloatField(null=True, blank=True)
+    plcypr = models.FloatField(null=True, blank=True)
+    plcnpr = models.FloatField(null=True, blank=True)
+    plcopr = models.FloatField(null=True, blank=True)
     year   = models.IntegerField(null=True, blank=True)  # Year
  
     def __str__(self):
@@ -1399,15 +1399,54 @@ class Unit(models.Model):
         on_delete=models.CASCADE,  # Deletes Unit records if the related Plant is deleted
         db_column='orispl'          
     ) 
-    prmvr = models.CharField(max_length=2, null=True, blank=True) 
-    untopst = models.CharField(max_length=2, null=True, blank=True) 
+    prmvr    = models.CharField(max_length=2, null=True, blank=True) 
     capdflag = models.CharField(max_length=50, null=True, blank=True)
-    prgcode = models.CharField(max_length=4000, null=True, blank=True)
+    prgcode  = models.CharField(max_length=4000, null=True, blank=True)
     botfirty = models.CharField(max_length=255, null=True, blank=True)
-    numgen = models.IntegerField(null=True, blank=True)
-    fuelu1 = models.CharField(max_length=6, null=True, blank=True)
-    hrsop = models.FloatField(null=True, blank=True) 
+    numgen   = models.IntegerField(null=True, blank=True)
+    sequnt   = models.IntegerField(null=True, blank=True)
     
+    def __str__(self):
+        return f"{self.unitid} - {self.orispl} - {self.prmvr}"
+
+    class Meta:
+        db_table = 'unit'
+        constraints = [
+            models.UniqueConstraint(fields=["unitid", "orispl", "prmvr"], name="unit_composite_pk")
+        ]
+
+class UnitUnadjustedValues(models.Model): 
+    id = models.AutoField(primary_key=True)
+    unitid = models.CharField(max_length=100, null=False, blank=False)
+    orispl = models.ForeignKey(
+        Plant,
+        on_delete=models.CASCADE,  # Deletes Unit records if the related Plant is deleted
+        db_column='orispl'          
+    ) 
+    prmvr    = models.CharField(max_length=2, null=True, blank=True) 
+    untopst  = models.CharField(max_length=2, null=True, blank=True) 
+    fuelu1   = models.CharField(max_length=6, null=True, blank=True)
+    hrsop    = models.FloatField(null=True, blank=True) 
+    htian    = models.FloatField(null=True, blank=True)
+    htioz    = models.FloatField(null=True, blank=True)
+    noxan    = models.FloatField(null=True, blank=True)
+    noxoz    = models.FloatField(null=True, blank=True)
+    so2an    = models.FloatField(null=True, blank=True)
+    co2an    = models.FloatField(null=True, blank=True)
+    hgan     = models.FloatField(null=True, blank=True)
+    htiansrc = models.CharField(max_length=200, null=True, blank=True)
+    htiozsrc = models.CharField(max_length=200, null=True, blank=True)
+    noxansrc = models.CharField(max_length=200, null=True, blank=True)
+    noxozsrc = models.CharField(max_length=200, null=True, blank=True)
+    so2src   = models.CharField(max_length=200, null=True, blank=True)
+    co2src   = models.CharField(max_length=200, null=True, blank=True)
+    hgsrc    = models.CharField(max_length=200, null=True, blank=True)
+    so2ctldc = models.CharField(max_length=10, null=True, blank=True)
+    noxctldv = models.CharField(max_length=200, null=True, blank=True)
+    hgctldv  = models.CharField(max_length=200, null=True, blank=True)
+    untyronl = models.IntegerField(null=True, blank=True)
+    stackht  = models.FloatField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
 

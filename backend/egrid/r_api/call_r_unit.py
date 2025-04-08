@@ -1,47 +1,168 @@
-from egrid.models import (
-    Plant,
-    Unit,
-)
-import requests 
+# File to communicate with the R API
+import requests  
 import logging
-import pandas as pd 
-from sqlalchemy import create_engine, text 
-from django.conf import settings
+import pandas as pd  
+from sqlalchemy import text 
+from .utils import update_from_temp_table, build_insert_from_temp_sql 
 
 logger = logging.getLogger('egrid')
 
-def call_r_unit():
+def populate_unit_data(engine=None, api_url=None): 
+    print('populate_unit_data')
+    logger.debug("*populate_unit_data")
 
-    engine = create_engine(
-    f"postgresql://{settings.DATABASES['default']['USER']}:{settings.DATABASES['default']['PASSWORD']}@"
-    f"{settings.DATABASES['default']['HOST']}:{settings.DATABASES['default']['PORT']}/"
-    f"{settings.DATABASES['default']['NAME']}"
-    ) 
 
     try:
-        response = requests.get("http://127.0.0.1:8001/unit")
+        response = requests.get(f"{api_url}unit")
         data = response.json() 
 
         if response.status_code == 200 and data.get('success'):
             unit_data = data.get('data', [])
             df = pd.DataFrame(unit_data)
         
-            df = df[['orispl', 'unitid', 'prmvr', 'untopst', 'capdflag', 'prgcode', 'botfirty', 'numgen', 'fuelu1', 'hrsop']] 
-         
+            cast_to_int = ['year', 'orispl', 'numgen', 'untyronl', 'sequnt']
+            cast_to_float = ['hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
+                             'so2an', 'co2an', 'hgan', 'stackht']
+            
+            for col in cast_to_int:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+            for col in cast_to_float:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+
+            year = df['year'].unique()[0] 
+            print('year ', year)    
+
+            # create tables
+            # Unit
+            unit_df = df[['sequnt', 'orispl', 'unitid', 'prmvr', 'capdflag', 
+                        'prgcode', 'botfirty', 'numgen']].copy()
+
+            # UnitUnadjustedValues
+            try: 
+                unitunadjustedvalues_df = df[['year', 'orispl', 'unitid', 'prmvr', 'untopst', 'fuelu1',
+                                              'hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
+                                              'so2an', 'co2an', 'hgan', 'htiansrc', 
+                                              'htiozsrc', 'noxansrc', 'noxozsrc', 'so2src', 
+                                              'co2src', 'hgsrc', 'so2ctldv', 'noxctldv', 
+                                              'hgctldv', 'untyronl', 'stackht']].copy()
+                unitunadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
+            except Exception: 
+                print('Error in UnitUnadjustedValues dataframe')
+
             try:
+                # build temp tables, replace will replace the table if it already exists
+                unit_df.to_sql('unit_temp', con=engine, if_exists='replace', index=False) 
+                unitunadjustedvalues_df.to_sql('unit_unadjusted_values_temp', con=engine, if_exists='replace', index=False)
+
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    conn.execute(text("truncate table unit cascade;"))  
-                    # result = conn.execute(text("SELECT COUNT(*) FROM plant;"))
-                   
+
+                    # count to see if table is empty
+                    unit_cnt = conn.execute(text("select count(*) from unit;")).scalar()
+
+                    unitunadjustedvalues_cnt = conn.execute(
+                        text("select count(*) from unit_unadjusted_values where year = :year"),
+                        {"year": int(year)}
+                    ).scalar()  
+
+                    # check count to insert or update the table
+                    if unit_cnt == 0:
+                        conn.execute(text("""
+                            insert into unit (
+                                sequnt, orispl, unitid, prmvr, capdflag, 
+                                prgcode, botfirty, numgen
+                            ) select sequnt, orispl, unitid, prmvr capdflag, 
+                                prgcode, botfirty, numgen
+                            from unit_temp;
+                        """))  
+                    else:
+                        conn.execute(text("""
+                            update unit
+                            set sequnt = unit_temp.sequnt
+                                orispl = unit_temp.orispl, 
+                                unitid = unit_temp.unitid, 
+                                prmvr = unit_temp.prmvr
+                                capdflag = unit_temp.capdflag, 
+                                prgcode = unit_temp.prgcode, 
+                                botfirty = unit_temp.botfirty, 
+                                numgen = unit_temp.numgen
+                            from unit_temp
+                            where unit.orispl = unit_temp.orispl and
+                                unit.unitid = unit_temp.unitid and
+                                unit.prmvr = unit_temp.prmvr;
+                        """))  
+
+                    if unitunadjustedvalues_cnt == 0:
+                        conn.execute(text("""
+                            insert into unit (
+                                year, orispl, unitid, prmvr, untopst, fuelu1,
+                                hrsop, htian, htioz, noxan, noxoz, 
+                                so2an, co2an, hgan, htiansrc, 
+                                htiozsrc, noxansrc, noxozsrc, so2src, 
+                                co2src, hgsrc, so2ctldv, noxctldv, 
+                                hgctldv, untyronl, stackht
+                            ) select year, orispl, unitid, prmvr, untopst, fuelu1,
+                                hrsop, htian, htioz, noxan, noxoz, 
+                                so2an, co2an, hgan, htiansrc, 
+                                htiozsrc, noxansrc, noxozsrc, so2src, 
+                                co2src, hgsrc, so2ctldv, noxctldv, 
+                                hgctldv, untyronl, stackht
+                            from unit_temp;
+                        """))  
+                    else:
+                        conn.execute(text("""
+                            update unit
+                            set year = unit_temp.year, 
+                                orispl = unit_temp.orispl, 
+                                unitid = unit_temp.unitid, 
+                                prmvr = unit_temp.prmvr,
+                                untopst = unit_temp.untopst, 
+                                fuelu1 = unit_temp.fuelu1,
+                                hrsop = unit_temp.hrsop, 
+                                htian = unit_temp.htian, 
+                                htioz = unit_temp.htioz, 
+                                noxan = unit_temp.noxan, 
+                                noxoz = unit_temp.noxoz, 
+                                so2an = unit_temp.so2an, 
+                                co2an = unit_temp.co2an, 
+                                hgan = unit_temp.hgan, 
+                                htiansrc = unit_temp.htiansrc, 
+                                htiozsrc = unit_temp.htiozsrc, 
+                                noxansrc = unit_temp.noxansrc, 
+                                noxozsrc = unit_temp.noxozsrc, 
+                                so2src = unit_temp.so2src, 
+                                co2src = unit_temp.co2src, 
+                                hgsrc = unit_temp.hgsrc, 
+                                so2ctldv = unit_temp.so2ctldv, 
+                                noxctldv = unit_temp.noxctldv, 
+                                hgctldv = unit_temp.hgctldv, 
+                                untyronl = unit_temp.untyronl, 
+                                stackht = unit_temp.stackht
+                            from unit_temp
+                            where unit.orispl = unit_temp.orispl and
+                                unit.unitid = unit_temp.unitid and
+                                unit.prmvr = unit_temp.prmvr;
+                        """))  
+
+                    # drop temp tables
+                    conn.execute(text("drop table unit_temp;"))
+                    conn.execute(text("drop table unit_unadjusted_values_temp;")) 
                     trans.commit() 
-                df.to_sql('unit', con=engine, if_exists='append', index=False)
-                print('Success inserting unit data.')
-                return {"success": True, "message": "Data successfully inserted into the unit table."}
+
+                print('Success populating unit data.')  
+                  
             except Exception as e:
-                print('Error inserting unit data.', e)
-                return {"error": str(e)}
-              
+                print('Error populating unit data.', e)
+                return {"error": str(e)}  
+
+            return {"success": True, "message": "Data successfully inserted into the Unit table."}
+        else:
+            return {"error": f"Failed to connect to R API with status code {response.status_code}"}
+    
     except Exception as e:
-        logger.error(f"Error while processing R API data: {e}", exc_info=True)
-        return {"error": str(e)}
+        return {"error": str(e)}                       
+
+                   
+
+                
