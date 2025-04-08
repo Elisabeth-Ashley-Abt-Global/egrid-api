@@ -191,11 +191,11 @@ def populate_us_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update us
-                            set year = us_temp.year, 
-                                usnamepcap = us_temp.usnamepcap              
-                            from us_temp
-                            where us.year = us_temp.year
-                                and us.usnamepcap = us_temp.usnamepcap;
+                            set year = ust.year, 
+                                usnamepcap = ust.usnamepcap              
+                            from us_temp ust
+                            where us.year = ust.year
+                                and us.usnamepcap = ust.usnamepcap;
                         """)) 
 
                     if usadjustedvalues_cnt == 0:

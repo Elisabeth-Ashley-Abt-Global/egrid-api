@@ -212,11 +212,11 @@ def populate_state_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update state
-                            set fipsst = state_temp.fipsst, 
-                                pstatabb = state_temp.pstatabb,
-                                stnamepcap = state_temp.stnamepcap              
-                            from state_temp
-                            where state.fipsst = state_temp.fipsst;
+                            set fipsst = stt.fipsst, 
+                                pstatabb = stt.pstatabb,
+                                stnamepcap = stt.stnamepcap              
+                            from state_temp stt
+                            where state.fipsst = stt.fipsst;
                         """)) 
 
                     if stateadjustedvalues_cnt == 0:

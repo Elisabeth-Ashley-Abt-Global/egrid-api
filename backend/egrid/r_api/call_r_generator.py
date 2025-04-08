@@ -65,11 +65,11 @@ def populate_generator_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update generator 
-                            set seqgen = generator_temp.seqgen, 
-                            genid = generator_temp.genid
-                            from generator_temp  
-                            where generator.orispl = generator_temp.orispl 
-                                and generator.genid = generator_temp.genid;
+                            set seqgen = gt.seqgen, 
+                            genid = gt.genid
+                            from generator_temp gt 
+                            where generator.orispl = gt.orispl 
+                                and generator.genid = gt.genid;
                         """))
 
                     if generation_cnt == 0:
@@ -86,23 +86,23 @@ def populate_generator_data(engine=None, api_url=None):
                     else:   
                         conn.execute(text("""  
                             update generation 
-                            set genid = generator_temp.genid,
-                            year = generator_temp.year, 
+                            set genid = gt.genid,
+                            year = gt.year, 
                             numblr = generator_temp.numblr,
-                            genstat = generator_temp.genstat, 
-                            prmvr = generator_temp.prmvr,
-                            fuelg1 = generator_temp.fuelg1,
-                            namepcap = generator_temp.namepcap,
-                            cfact = generator_temp.cfact, 
-                            genntan = generator_temp.genntan,
-                            genntoz = generator_temp.genntoz, 
-                            genersrc = generator_temp.genersrc,
-                            genyronl = generator_temp.genyronl,
-                            genyrret = generator_temp.genyrret
-                            from generator_temp  
-                            where generation.orispl = generator_temp.orispl 
-                                and generation.genid = generator_temp.genid
-                                and generation.year = generator_temp.year;
+                            genstat = gt.genstat, 
+                            prmvr = gt.prmvr,
+                            fuelg1 = gt.fuelg1,
+                            namepcap = gt.namepcap,
+                            cfact = gt.cfact, 
+                            genntan = gt.genntan,
+                            genntoz = gt.genntoz, 
+                            genersrc = gt.genersrc,
+                            genyronl = gt.genyronl,
+                            genyrret = gt.genyrret
+                            from generator_temp gt
+                            where generation.orispl = gt.orispl 
+                                and generation.genid = gt.genid
+                                and generation.year = gt.year;
                         """))
   
                     # conn.execute(text("truncate table generator_temp;"))

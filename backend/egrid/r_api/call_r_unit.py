@@ -11,7 +11,6 @@ def populate_unit_data(engine=None, api_url=None):
     print('populate_unit_data')
     logger.debug("*populate_unit_data")
 
-
     try:
         response = requests.get(f"{api_url}unit")
         data = response.json() 
@@ -79,18 +78,18 @@ def populate_unit_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update unit
-                            set sequnt = unit_temp.sequnt
-                                orispl = unit_temp.orispl, 
-                                unitid = unit_temp.unitid, 
-                                prmvr = unit_temp.prmvr
-                                capdflag = unit_temp.capdflag, 
-                                prgcode = unit_temp.prgcode, 
-                                botfirty = unit_temp.botfirty, 
-                                numgen = unit_temp.numgen
-                            from unit_temp
-                            where unit.orispl = unit_temp.orispl and
-                                unit.unitid = unit_temp.unitid and
-                                unit.prmvr = unit_temp.prmvr;
+                            set sequnt = unt.sequnt
+                                orispl = unt.orispl, 
+                                unitid = unt.unitid, 
+                                prmvr = unt.prmvr
+                                capdflag = unt.capdflag, 
+                                prgcode = unt.prgcode, 
+                                botfirty = unt.botfirty, 
+                                numgen = unt.numgen
+                            from unit_temp unt
+                            where unit.orispl = unt.orispl and
+                                unit.unitid = unt.unitid and
+                                unit.prmvr = unt.prmvr;
                         """))  
 
                     if unitunadjustedvalues_cnt == 0:
@@ -113,36 +112,36 @@ def populate_unit_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update unit
-                            set year = unit_temp.year, 
-                                orispl = unit_temp.orispl, 
-                                unitid = unit_temp.unitid, 
-                                prmvr = unit_temp.prmvr,
-                                untopst = unit_temp.untopst, 
-                                fuelu1 = unit_temp.fuelu1,
-                                hrsop = unit_temp.hrsop, 
-                                htian = unit_temp.htian, 
-                                htioz = unit_temp.htioz, 
-                                noxan = unit_temp.noxan, 
-                                noxoz = unit_temp.noxoz, 
-                                so2an = unit_temp.so2an, 
-                                co2an = unit_temp.co2an, 
-                                hgan = unit_temp.hgan, 
-                                htiansrc = unit_temp.htiansrc, 
-                                htiozsrc = unit_temp.htiozsrc, 
-                                noxansrc = unit_temp.noxansrc, 
-                                noxozsrc = unit_temp.noxozsrc, 
-                                so2src = unit_temp.so2src, 
-                                co2src = unit_temp.co2src, 
-                                hgsrc = unit_temp.hgsrc, 
-                                so2ctldv = unit_temp.so2ctldv, 
-                                noxctldv = unit_temp.noxctldv, 
-                                hgctldv = unit_temp.hgctldv, 
-                                untyronl = unit_temp.untyronl, 
-                                stackht = unit_temp.stackht
-                            from unit_temp
-                            where unit.orispl = unit_temp.orispl and
-                                unit.unitid = unit_temp.unitid and
-                                unit.prmvr = unit_temp.prmvr;
+                            set year = unt.year, 
+                                orispl = unt.orispl, 
+                                unitid = unt.unitid, 
+                                prmvr = unt.prmvr,
+                                untopst = unt.untopst, 
+                                fuelu1 = unt.fuelu1,
+                                hrsop = unt.hrsop, 
+                                htian = unt.htian, 
+                                htioz = unt.htioz, 
+                                noxan = unt.noxan, 
+                                noxoz = unt.noxoz, 
+                                so2an = unt.so2an, 
+                                co2an = unt.co2an, 
+                                hgan = unt.hgan, 
+                                htiansrc = unt.htiansrc, 
+                                htiozsrc = unt.htiozsrc, 
+                                noxansrc = unt.noxansrc, 
+                                noxozsrc = unt.noxozsrc, 
+                                so2src = unt.so2src, 
+                                co2src = unt.co2src, 
+                                hgsrc = unt.hgsrc, 
+                                so2ctldv = unt.so2ctldv, 
+                                noxctldv = unt.noxctldv, 
+                                hgctldv = unt.hgctldv, 
+                                untyronl = unt.untyronl, 
+                                stackht = unt.stackht
+                            from unit_temp unt
+                            where unit.orispl = unt.orispl and
+                                unit.unitid = unt.unitid and
+                                unit.prmvr = unt.prmvr;
                         """))  
 
                     # drop temp tables

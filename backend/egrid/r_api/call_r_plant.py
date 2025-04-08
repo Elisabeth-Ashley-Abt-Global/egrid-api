@@ -171,23 +171,23 @@ def populate_plant_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update plant set pstatabb = plant_temp.pstatabb, 
-                                    fipsst = plant_temp.fipsst, 
-                                    utlsrvid = plant_temp.utlsrvid,
-                                    bacode = plant_temp.bacode, 
-                                    nerc = plant_temp.nerc,  
-                                    lat = plant_temp.lat, 
-                                    lon = plant_temp.lon, 
-                                    numunt = plant_temp.numunt, 
-                                    numgen = plant_temp.numgen, 
-                                    plprmfl = plant_temp.plprmfl, 
-                                    plfuelct = plant_temp.plfuelct, 
-                                    oprcode = plant_temp.oprcode, 
-                                    sector = plant_temp.sector, 
-                                    pname = plant_temp.pname, 
-                                    coalflag = plant_temp.coalflag, 
-                                    seqplt = plant_temp.seqplt 
-                            from plant_temp  
-                            where plant.orispl = plant_temp.orispl;
+                                    fipsst = plt.fipsst, 
+                                    utlsrvid = plt.utlsrvid,
+                                    bacode = plt.bacode, 
+                                    nerc = plt.nerc,  
+                                    lat = plt.lat, 
+                                    lon = plt.lon, 
+                                    numunt = plt.numunt, 
+                                    numgen = plt.numgen, 
+                                    plprmfl = plt.plprmfl, 
+                                    plfuelct = plt.plfuelct, 
+                                    oprcode = plt.oprcode, 
+                                    sector = plt.sector, 
+                                    pname = plt.pname, 
+                                    coalflag = plt.coalflag, 
+                                    seqplt = plt.seqplt 
+                            from plant_temp plt
+                            where plant.orispl = plt.orispl;
                         """))
 
                     if plantadjustedvalues_cnt == 0:

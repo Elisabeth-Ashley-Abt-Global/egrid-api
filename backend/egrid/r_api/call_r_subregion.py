@@ -212,11 +212,11 @@ def populate_subregion_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update subregion
-                            set subrgn = subregion_temp.subrgn, 
-                                srname = subregion_temp.srname,
-                                srnamepcap = subregion_temp.srnamepcap              
-                            from subregion_temp
-                            where subregion.subrgn = subrgn_temp.subrgn;
+                            set subrgn = srt.subrgn, 
+                                srname = srt.srname,
+                                srnamepcap = srt.srnamepcap              
+                            from subregion_temp srt
+                            where subregion.subrgn = srt.subrgn;
                         """))  
 
                     if subrgnadjustedvalues_cnt == 0:

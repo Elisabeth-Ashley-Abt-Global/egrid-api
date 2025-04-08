@@ -209,11 +209,11 @@ def populate_nerc_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update balancing_authority 
-                            set nerc = nerc_temp.nerc, 
-                                nrname = nerc_temp.nrname,
-                                nrnamepcap = nerc_temp.nrnamepcap              
-                            from nerc_temp
-                            where nerc.nerc = nerc_temp.nerc;
+                            set nerc = nrt.nerc, 
+                                nrname = nrt.nrname,
+                                nrnamepcap = nrt.nrnamepcap              
+                            from nerc_temp nrt
+                            where nerc.nerc = nrt.nerc;
                         """)) 
 
                     if nercadjustedvalues_cnt == 0:
