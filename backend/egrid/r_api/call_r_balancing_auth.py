@@ -39,7 +39,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                             'banbgnso', 'banbgngt', 'banbgnof', 'banbgnop', 'banbclpr', 'banbolpr', 'banbgspr', 'banbncpr',  
                             'banbhypr', 'banbbmpr', 'banbwipr', 'banbsopr', 'banbgtpr', 'banbofpr', 'banboppr', 'baclpr',
                             'baolpr', 'bagspr', 'bancpr', 'bahypr', 'babmpr', 'bawipr', 'basopr', 'bagtpr', 
-                            'baofpr', 'baoppr', 'batnpr', 'batrpr', 'batopr', 'bathpr', 'bacypr', 'bacnpr', 'bacopr']
+                            'baofpr', 'baoppr', 'batnpr', 'batrpr', 'batopr', 'bathpr', 'bacypr', 'bacnpr', 'bacopr','bahgan']
             
             for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
@@ -148,7 +148,7 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
                     ba_cnt = conn.execute(text("select count(*) from balancing_authority;")).scalar()
-
+                    print('ba_cnt', ba_cnt)
                     # check count to insert or update the table
                     baadjustedvalues_cnt = conn.execute(
                         text("select count(*) from ba_adjusted_values where year = :year"),
@@ -191,11 +191,11 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update balancing_authority 
-                            set bacode = balancing_authority_temp.bacode, 
-                                baname = balacing_authority_temp.baname,
-                                banamepcap = balancing_authority_temp.banamepcap              
-                            from balancing_authority_temp 
-                            where balancing_authority.bacode = balancing_authority_temp.bacode;
+                            set bacode = bt.bacode, 
+                                baname = bt.baname,
+                                banamepcap = bt.banamepcap              
+                            from balancing_authority_temp bt
+                            where balancing_authority.bacode = bt.bacode;
                         """)) 
 
                     if baadjustedvalues_cnt == 0:
