@@ -19,8 +19,9 @@ def populate_state_data(engine=None, api_url=None):
         if response.status_code == 200 and data.get('success'):
             state_data = data.get('data', [])
             df = pd.DataFrame(state_data)
-        
+            print(df.head())
             cast_to_int = ['year']
+            print('cast to int  ')
             cast_to_float = ['stnamepcap', 'sthtian', 'sthtioz', 'sthtiant', 
                              'sthtiozt', 'stngenan', 'stngenoz', 'stngennb', 
                              'stnoxan', 'stnoxoz', 'stso2an', 'stco2an', 
@@ -29,7 +30,7 @@ def populate_state_data(engine=None, api_url=None):
                              'stn2orta', 'stc2erta', 'stnoxra', 'stnoxro',
                              'stso2ra', 'stco2ra', 'stch4ra', 'stn2ora', 
                              'stc2era', 'stnoxcrt', 'stnoxcro', 'stso2crt', 
-                             'stco2crt', 'stch4crt', 'stn2ocrt', 'stc2ecrt', 
+                             'stco2crt', 'stch4crt', 'stn2ocrt',  
                              'stcnoxrt', 'stonoxrt', 'stgnoxrt', 'stfsnxrt', 
                              'stcnxort', 'stonxort', 'stgnxort', 'stfsnort', 
                              'stcso2rt', 'stoso2rt', 'stgso2rt', 'stfss2rt', 
@@ -60,21 +61,28 @@ def populate_state_data(engine=None, api_url=None):
                              'stbmpr', 'stwipr', 'stsopr', 'stgtpr', 
                              'stofpr', 'stoppr', 'sttnpr', 'sttrpr',
                              'sttopr', 'stthpr', 'stcypr', 'stcnpr', 
-                             'stcopr']
-
+                             'stcopr'] 
+            #'stc2ecrt', 
+            print('cast to float  ', cast_to_float)
             for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                try:
+                    df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                except Exception as e:
+                    print(f"Error converting column {col} to float: {e}")
+                    df[col] = df[col].astype(float)
 
             year = df['year'].unique()[0] 
             print('year ', year)
 
             # create tables 
             # State
-            state_df = df[['fipsst', 'pstatabb', 'stnamepcap']].copy() 
-
+            try:
+                state_df = df[['fipsst', 'pstatabb', 'stnamepcap']].copy() 
+            except Exception:
+                print('Error in State dataframe')
             # StateAdjustedValues
             try: 
                 stateadjustedvalues_df = df[['fipsst', 'sthtian', 'sthtioz', 'sthtiant', 
@@ -92,8 +100,10 @@ def populate_state_data(engine=None, api_url=None):
                                         'sthgrta', 'stnoxra', 'stnoxro', 'stso2ra',  
                                         'stco2ra', 'stch4ra', 'stn2ora', 'stc2era',  
                                         'sthgra', 'stnoxcrt', 'stnoxcro', 'stso2crt', 
-                                        'stco2crt', 'stch4crt', 'stn2ocrt', 'stc2ecrt', 
+                                        'stco2crt', 'stch4crt', 'stn2ocrt',  
                                         'sthgcrt', 'year']].copy()
+                
+                #stc2ecrt
                 stateemissionrate_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in StateEmissionRate dataframe')

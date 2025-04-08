@@ -862,6 +862,7 @@ class StateAdjustedValues(models.Model):
     id     = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
+                to_field='fipsst',
                 on_delete=models.CASCADE,  # Deletes StateAdjustedValues records if the related Plant is deleted
                 db_column='fipsst'          
             )  
@@ -903,6 +904,7 @@ class StateEmissionRate(models.Model):
     id = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
+                to_field='fipsst',
                 on_delete=models.CASCADE,  # Deletes StateEmissionRate records if the related Plant is deleted
                 db_column='fipsst'          
             )  
@@ -943,6 +945,7 @@ class StateFuelTypeEmissionRate(models.Model):
     id = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
+                to_field='fipsst',
                 on_delete=models.CASCADE,  # Deletes StateFuelTypeEmissionRate records if the related Plant is deleted
                 db_column='fipsst'          
             )  
@@ -1019,6 +1022,7 @@ class StateFuelTypeGeneration(models.Model):
     id = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
+                to_field='fipsst',
                 on_delete=models.CASCADE,  # Deletes StateFuelTypeEmissionRate records if the related Plant is deleted
                 db_column='fipsst'          
             )  
@@ -1053,6 +1057,7 @@ class StateNonBaseloadValues(models.Model):
     id = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
+                to_field='fipsst',
                 on_delete=models.CASCADE,  # Deletes StateFuelTypeEmissionRate records if the related Plant is deleted
                 db_column='fipsst'          
             )   
@@ -1098,6 +1103,7 @@ class StateResourceMix(models.Model):
     id = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
                 State,
+                to_field='fipsst',
                 on_delete=models.CASCADE,  # Deletes StateFuelTypeEmissionRate records if the related Plant is deleted
                 db_column='fipsst'          
             )   

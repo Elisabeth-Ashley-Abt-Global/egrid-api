@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
 from egrid.r_api.call_r_nerc import populate_nerc_data
-# from egrid.r_api.call_r_state import call_r_state 
+from egrid.r_api.call_r_state import populate_state_data 
 # from egrid.r_api.call_r_unit import call_r_unit
 from sqlalchemy import create_engine, text 
 from urllib.parse import quote_plus
@@ -47,8 +47,8 @@ class Command(BaseCommand):
                 case 'nerc':
                     populate_nerc_data(engine, api_url) 
 
-                # case 'state':
-                #     call_r_state()
+                case 'state':
+                    populate_state_data(engine, api_url)
 
                 # case 'subregion':
                 #     call_r_subregion() 
