@@ -8,20 +8,27 @@ from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
  
-def populate_state_data(engine=None, api_url=None): 
-    print('populate_state_data')
+def populate_state_data(engine=None, api_url=None, year=None): 
+    print('Populating State Data')
     logger.debug("*populate_state_data")
 
     try:
-        response = requests.get(f"{api_url}state")
+        response = requests.get(f"{api_url}{year}/state")
         data = response.json() 
         
         if response.status_code == 200 and data.get('success'):
             state_data = data.get('data', [])
             df = pd.DataFrame(state_data)
-            print(df.head())
+            # print(df.head())
             cast_to_int = ['year']
-            print('cast to int  ')
+            
+            # step 1
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['stngennb', 'stgenato','stgenaco','sttopr','stcopr']
+            # Define new columns for dataframes (2023+ data)
+            new_resource_cols = ['sttopr','stcopr']
+            new_ftg_cols = ['stgenato','stgenaco']
+               
             cast_to_float = ['stnamepcap', 'sthtian', 'sthtioz', 'sthtiant', 
                              'sthtiozt', 'stngenan', 'stngenoz', 'stngennb', 
                              'stnoxan', 'stnoxoz', 'stso2an', 'stco2an', 
@@ -63,20 +70,34 @@ def populate_state_data(engine=None, api_url=None):
                              'sttopr', 'stthpr', 'stcypr', 'stcnpr', 
                              'stcopr'] 
             #'stc2ecrt', 
-            print('cast to float  ', cast_to_float)
+          
+            # step 2
+            # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
+                try:
+                    if year >= 2023:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+                except Exception as e:
+                    print('Error converting column to Int64:', col, e)
 
             for col in cast_to_float:
                 try:
-                    df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                    if year >= 2023: # Double check this
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                            
                 except Exception as e:
-                    print(f"Error converting column {col} to float: {e}")
-                    df[col] = df[col].astype(float)
-
+                    print('Error converting column to float:', col, e)
+    
+              
             year = df['year'].unique()[0] 
-            print('year ', year)
-
+            
             # create tables 
             # State
             try:
@@ -86,9 +107,14 @@ def populate_state_data(engine=None, api_url=None):
             # StateAdjustedValues
             try: 
                 stateadjustedvalues_df = df[['fipsst', 'sthtian', 'sthtioz', 'sthtiant', 
-                                            'sthtiozt', 'stngenan', 'stngenoz', 'stngennb', 
+                                            'sthtiozt', 'stngenan', 'stngenoz',
                                             'stnoxan', 'stnoxoz', 'stso2an', 'stco2an', 
                                             'stch4an', 'stn2oan', 'stco2eqa', 'sthgan', 'year']].copy()
+                if year >= 2023:
+                    # add 'bangennb' column to baadjustedvalues_df for records from 2023 onward
+                    stateadjustedvalues_df['stngennb'] = df['stngennb']
+                 
+                stateadjustedvalues_df.copy()
                 stateadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in StateAdjustedValues dataframe')
@@ -133,9 +159,15 @@ def populate_state_data(engine=None, api_url=None):
             try: 
                 statefueltypegeneration_df = df[['fipsst', 'stgenacl', 'stgenaol', 'stgenaso', 'stgenagt',
                                                 'stgenaof', 'stgenaop', 'stgenatn', 'stgenatr', 
-                                                'stgenato', 'stgenath', 'stgenacy', 'stgenacn',
-                                                'stgenaco', 'stgenags', 'stgenanc', 'stgenahy',
+                                                'stgenath', 'stgenacy', 'stgenacn',
+                                                'stgenags', 'stgenanc', 'stgenahy',
                                                 'stgenabm', 'stgenawi', 'year']].copy()
+             
+                if year >= 2023: 
+                    for col in new_ftg_cols: 
+                        statefueltypegeneration_df[col] = df[col]
+
+                statefueltypegeneration_df.copy()
                 statefueltypegeneration_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in StateFuelTypeGeneration dataframe')
@@ -159,11 +191,18 @@ def populate_state_data(engine=None, api_url=None):
                 stateresourcemix_df = df[['fipsst', 'stclpr', 'stolpr', 'stgspr', 
                                         'stncpr', 'sthypr', 'stbmpr', 'stwipr', 
                                         'stsopr', 'stgtpr', 'stofpr', 'stoppr', 
-                                        'sttnpr', 'sttrpr', 'sttopr', 'stthpr', 
-                                        'stcypr', 'stcnpr', 'stcopr']].copy()
+                                        'sttnpr', 'sttrpr', 'stthpr', 
+                                        'stcypr', 'stcnpr']].copy()
+
+                if year >= 2023: 
+                    for col in new_resource_cols: 
+                        stateresourcemix_df[col] = df[col] 
+
+                stateresourcemix_df.copy()
                 stateresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
-                print('Error in StateResourceMix dataframe')
+                print('Error in StateResourceMix dataframe') 
+
 
             try:
                 # build temp tables, replace will replace the table if it already exists
@@ -231,11 +270,11 @@ def populate_state_data(engine=None, api_url=None):
 
                     if stateadjustedvalues_cnt == 0:
                         sql = build_insert_from_temp_sql("state_adjusted_values", stateadjustedvalues_df)
-                        conn.execute(text(sql))  
+                        conn.execute(text(sql))   
                     else:
                         sql = update_from_temp_table( "state_adjusted_values", stateadjustedvalues_df, "fipsst")
-                        conn.execute(text(sql))    
-
+                        conn.execute(text(sql))     
+ 
                     if stateemissionrate_cnt == 0:
                         sql = build_insert_from_temp_sql("state_emission_rate", stateemissionrate_df)
                         conn.execute(text(sql))  

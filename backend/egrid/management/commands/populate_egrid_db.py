@@ -28,9 +28,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--table_name', type=str, help="The name of the table to populate", default=None)
+        parser.add_argument('--year', type=int, help="The year to populate", default=None)
 
     def handle(self, *args, **options):
         table_name = options['table_name']
+        year = options['year']
         logger.info(f"Populating the {table_name} table...")
     
         try:
@@ -48,7 +50,7 @@ class Command(BaseCommand):
                     populate_nerc_data(engine, api_url) 
 
                 case 'state':
-                    populate_state_data(engine, api_url)
+                    populate_state_data(engine, api_url, year)
 
                 # case 'subregion':
                 #     call_r_subregion() 

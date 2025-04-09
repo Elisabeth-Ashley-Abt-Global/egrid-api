@@ -19,7 +19,7 @@ def populate_nerc_data(engine=None, api_url=None):
         if response.status_code == 200 and data.get('success'):
             nerc_data = data.get('data', [])
             df = pd.DataFrame(nerc_data)
-        
+            print('nerc data', df.head()) # for debugging
             cast_to_int = ['year']
             cast_to_float = ['nrnamepcap', 'nrhtian', 'nrhtioz', 'nrhtiant', 
                              'nrhtiozt', 'nrngenan', 'nrngenoz', 'nrngennb', 
@@ -72,7 +72,7 @@ def populate_nerc_data(engine=None, api_url=None):
             print('year ', year)
             # cast nerc to char
             df['nerc'] = df['nerc'].astype(str).str.strip()
-            
+
             nerc_df = df[['nerc', 'nercname', 'nrnamepcap']].copy() 
 
             # NercAdjustedValues

@@ -5,9 +5,11 @@ function() {
   list(message = "Hello, from R!")
 }
 
-#* @get /plant
-function() {
-  rds_file <- file.path(".", "data", "outputs", "plant_file.RDS")
+#* @get /<year>/plant
+function(year) {
+  rds_file <- file.path(
+    ".", "data", "outputs", year, "plant_file.RDS"
+  )
   tryCatch({
     plant_data <- readRDS(rds_file)
     list(success = TRUE, data = plant_data)
@@ -50,9 +52,11 @@ function() {
   })
 }
 
-#* @get /state
-function() {
-  rds_file <- file.path(".", "data", "outputs", "state_aggregation.RDS")
+#* @get /<year>/state
+function(year) {
+  rds_file <- file.path(
+    ".", "data", "outputs", year, "state_aggregation.RDS"
+  )
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)

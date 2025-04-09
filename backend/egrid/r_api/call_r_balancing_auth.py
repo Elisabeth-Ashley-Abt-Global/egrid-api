@@ -57,10 +57,19 @@ def populate_balancing_auth_data(engine=None, api_url=None):
 
             # BaAdjustedValues
             try: 
+                # include og columns in the dataframe
                 baadjustedvalues_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 
-                                          'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz', 'bangennb',
+                                          'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz',
                                           'banoxan', 'banoxoz', 'baso2an', 'baco2an', 
-                                          'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']].copy()
+                                          'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
+                
+              
+                if year >= 2023:
+                    # add 'bangennb' column to baadjustedvalues_df for records from 2023 onward
+                    baadjustedvalues_df['bangennb'] = df['bangennb']
+                    print('baadjustedvalues_df', baadjustedvalues_df.head()) # for debugging
+
+                baadjustedvalues_df.copy()
                 baadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             except Exception: 
                 print('Error in BaAdjustedValues dataframe')
