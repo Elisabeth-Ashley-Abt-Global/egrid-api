@@ -69,11 +69,28 @@ def populate_nerc_data(engine=None, api_url=None):
                              'nrtopr', 'nrthpr', 'nrcypr', 'nrcnpr', 
                              'nrcopr']
 
+            # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
+                try:
+                    if year >= 2023:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+                except Exception as e:
+                    print('Error converting column to Int64:', col, e)
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                try:
+                    if year >= 2023: # Double check this
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                            
+                except Exception as e:
+                    print('Error converting column to float:', col, e)
 
             year = df['year'].unique()[0] 
             print('year ', year)
@@ -85,9 +102,13 @@ def populate_nerc_data(engine=None, api_url=None):
             # NercAdjustedValues
             try: 
                 nercadjustedvalues_df = df[['nerc', 'nrhtian', 'nrhtioz', 'nrhtiant', 
-                                            'nrhtiozt', 'nrngenan', 'nrngenoz', 'nrngennb', 
+                                            'nrhtiozt', 'nrngenan', 'nrngenoz', 
                                             'nrnoxan', 'nrnoxoz', 'nrso2an', 'nrco2an', 
                                             'nrch4an', 'nrn2oan', 'nrco2eqa', 'nrhgan', 'year']].copy()
+                if year >= 2023: 
+                    nercadjustedvalues_df['nrngennb'] = df['nrngennb']
+
+                nercadjustedvalues_df.copy()
                 nercadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in NercAdjustedValues dataframe')
@@ -130,9 +151,14 @@ def populate_nerc_data(engine=None, api_url=None):
             try: 
                 nercfueltypegeneration_df = df[['nerc', 'nrgenacl', 'nrgenaol', 'nrgenaso', 'nrgenagt',
                                                 'nrgenaof', 'nrgenaop', 'nrgenatn', 'nrgenatr', 
-                                                'nrgenato', 'nrgenath', 'nrgenacy', 'nrgenacn',
-                                                'nrgenaco', 'nrgenags', 'nrgenanc', 'nrgenahy',
+                                                'nrgenath', 'nrgenacy', 'nrgenacn',
+                                                'nrgenags', 'nrgenanc', 'nrgenahy',
                                                 'nrgenabm', 'nrgenawi', 'year']].copy()
+                if year >= 2023: 
+                    for col in new_ftg_cols: 
+                        nercfueltypegeneration_df[col] = df[col]
+                
+                nercfueltypegeneration_df.copy()
                 nercfueltypegeneration_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in NercFuelTypeGeneration dataframe')
@@ -156,8 +182,13 @@ def populate_nerc_data(engine=None, api_url=None):
                 nercresourcemix_df = df[['nerc', 'nrclpr', 'nrolpr', 'nrgspr', 
                                         'nrncpr', 'nrhypr', 'nrbmpr', 'nrwipr', 
                                         'nrsopr', 'nrgtpr', 'nrofpr', 'nroppr', 
-                                        'nrtnpr', 'nrtrpr', 'nrtopr', 'nrthpr', 
-                                        'nrcypr', 'nrcnpr', 'nrcopr']].copy()
+                                        'nrtnpr', 'nrtrpr', 'nrthpr', 
+                                        'nrcypr', 'nrcnpr']].copy()
+                if year >= 2023: 
+                    for col in new_resource_cols: 
+                        nercresourcemix_df[col] = df[col]
+                
+                nercresourcemix_df.copy()
                 nercresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in NercResourceMix dataframe')

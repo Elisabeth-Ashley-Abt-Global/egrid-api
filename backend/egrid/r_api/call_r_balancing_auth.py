@@ -48,11 +48,28 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                             'baolpr', 'bagspr', 'bancpr', 'bahypr', 'babmpr', 'bawipr', 'basopr', 'bagtpr', 
                             'baofpr', 'baoppr', 'batnpr', 'batrpr', 'batopr', 'bathpr', 'bacypr', 'bacnpr', 'bacopr','bahgan']
             
+            # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
+                try:
+                    if year >= 2023:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+                except Exception as e:
+                    print('Error converting column to Int64:', col, e)
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                try:
+                    if year >= 2023: # Double check this
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                            
+                except Exception as e:
+                    print('Error converting column to float:', col, e)
  
 
             year = df['year'].unique()[0] 
@@ -74,7 +91,6 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                 if year >= 2023:
                     # add 'bangennb' column to baadjustedvalues_df for records from 2023 onward
                     baadjustedvalues_df['bangennb'] = df['bangennb']
-                    print('baadjustedvalues_df', baadjustedvalues_df.head()) # for debugging
 
                 baadjustedvalues_df.copy()
                 baadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
@@ -119,9 +135,14 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             try: 
                 bafueltypegeneration_df = df[['bacode', 'bagenacl', 'bagenaol', 'bagenaso', 'bagenagt',
                                             'bagenaof', 'bagenaop', 'bagenatn', 'bagenatr', 
-                                            'bagenato', 'bagenath', 'bagenacy', 'bagenacn',
-                                            'bagenaco', 'bagenags', 'bagenanc', 'bagenahy',
+                                            'bagenath', 'bagenacy', 'bagenacn',
+                                            'bagenags', 'bagenanc', 'bagenahy',
                                             'bagenabm', 'bagenawi', 'year']].copy()
+                if year >= 2023: 
+                    for col in new_ftg_cols: 
+                        bafueltypegeneration_df[col] = df[col]
+                
+                bafueltypegeneration_df.copy()
                 bafueltypegeneration_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in BaFuelTypeGeneration dataframe')
@@ -145,8 +166,13 @@ def populate_balancing_auth_data(engine=None, api_url=None):
                 baresourcemix_df = df[['bacode', 'baclpr', 'baolpr', 'bagspr', 
                                         'bancpr', 'bahypr', 'babmpr', 'bawipr', 
                                         'basopr', 'bagtpr', 'baofpr', 'baoppr', 
-                                        'batnpr', 'batrpr', 'batopr', 'bathpr', 
-                                        'bacypr', 'bacnpr', 'bacopr', 'year']].copy()
+                                        'batnpr', 'batrpr', 'bathpr', 
+                                        'bacypr', 'bacnpr', 'year']].copy()
+                if year >= 2023: 
+                    for col in new_resource_cols: 
+                        baresourcemix_df[col] = df[col]
+
+                baresourcemix_df.copy()
                 baresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in BaResourceMix dataframe')

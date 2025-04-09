@@ -27,11 +27,28 @@ def populate_unit_data(engine=None, api_url=None):
             cast_to_float = ['hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
                              'so2an', 'co2an', 'hgan', 'stackht']
             
+            # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                try:
+                    if year >= 2023:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+                except Exception as e:
+                    print('Error converting column to Int64:', col, e)
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                try:
+                    if year >= 2023: # Double check this
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                            
+                except Exception as e:
+                    print('Error converting column to float:', col, e)
 
             year = df['year'].unique()[0] 
             print('year ', year)    
@@ -48,7 +65,11 @@ def populate_unit_data(engine=None, api_url=None):
                                               'so2an', 'co2an', 'hgan', 'htiansrc', 
                                               'htiozsrc', 'noxansrc', 'noxozsrc', 'so2src', 
                                               'co2src', 'hgsrc', 'so2ctldv', 'noxctldv', 
-                                              'hgctldv', 'untyronl', 'stackht']].copy()
+                                              'hgctldv', 'untyronl']].copy()
+                if year >= 2023: 
+                    unitunadjustedvalues_df['stackht'] = df['stackht']
+
+                unitunadjustedvalues_df.copy()
                 unitunadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in UnitUnadjustedValues dataframe')

@@ -48,11 +48,28 @@ def populate_us_data(engine=None, api_url=None):
                             'usolpr', 'usgspr', 'usncpr', 'ushypr', 'usbmpr', 'uswipr', 'ussopr', 'usgtpr', 
                             'usofpr', 'usoppr', 'ustnpr', 'ustrpr', 'ustopr', 'usthpr', 'uscypr', 'uscnpr', 'uscopr']
             
+            # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
+                try:
+                    if year >= 2023:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+                except Exception as e:
+                    print('Error converting column to Int64:', col, e)
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                try:
+                    if year >= 2023: # Double check this
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                            
+                except Exception as e:
+                    print('Error converting column to float:', col, e)
  
 
             year = df['year'].unique()[0] 
@@ -65,9 +82,14 @@ def populate_us_data(engine=None, api_url=None):
             # UsAdjustedValues
             try: 
                 usadjustedvalues_df = df[['year', 'usnamepcap', 'ushtian', 'ushtioz', 
-                                          'ushtiant', 'ushtiozt', 'usngenan', 'usngenoz', 'usngennb',
+                                          'ushtiant', 'ushtiozt', 'usngenan', 'usngenoz', 
                                           'usnoxan', 'usnoxoz', 'usso2an', 'usco2an', 
                                           'usch4an', 'usn2oan', 'usco2eqa', 'ushgan']].copy()
+                if year >= 2023: 
+                    # add 'bangennb' column to baadjustedvalues_df for records from 2023 onward
+                    usadjustedvalues_df['usngennb'] = df['usngennb']
+                
+                usadjustedvalues_df.copy()
                 usadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             except Exception: 
                 print('Error in UsAdjustedValues dataframe')
@@ -110,9 +132,14 @@ def populate_us_data(engine=None, api_url=None):
             try: 
                 usfueltypegeneration_df = df[['year', 'usnamepcap', 'usgenacl', 'usgenaol', 'usgenaso', 'usgenagt',
                                             'usgenaof', 'usgenaop', 'usgenatn', 'usgenatr', 
-                                            'usgenato', 'usgenath', 'usgenacy', 'usgenacn',
-                                            'usgenaco', 'usgenags', 'usgenanc', 'usgenahy',
+                                            'usgenath', 'usgenacy', 'usgenacn',
+                                            'usgenags', 'usgenanc', 'usgenahy',
                                             'usgenabm', 'usgenawi']].copy()
+                if year >= 2023: 
+                    for col in new_ftg_cols: 
+                        usfueltypegeneration_df[col] = df[col]
+
+                usfueltypegeneration_df.copy()
                 usfueltypegeneration_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in UsFuelTypeGeneration dataframe')
@@ -136,8 +163,13 @@ def populate_us_data(engine=None, api_url=None):
                 usresourcemix_df = df[['year', 'usnamepcap', 'usclpr', 'usolpr', 'usgspr', 
                                         'usncpr', 'ushypr', 'usbmpr', 'uswipr', 
                                         'ussopr', 'usgtpr', 'usofpr', 'usoppr', 
-                                        'ustnpr', 'ustrpr', 'ustopr', 'usthpr', 
-                                        'uscypr', 'uscnpr', 'uscopr']].copy()
+                                        'ustnpr', 'ustrpr', 'usthpr', 
+                                        'uscypr', 'uscnpr']].copy()
+                if year >= 2023: 
+                    for col in new_resource_cols: 
+                        usresourcemix_df[col] = df[col]
+
+                usresourcemix_df.copy()
                 usresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in UsResourceMix dataframe')
