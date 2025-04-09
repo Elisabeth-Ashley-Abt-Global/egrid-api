@@ -4,16 +4,16 @@ import logging
 import pandas as pd  
 from sqlalchemy import text 
 from .utils import update_from_temp_table, build_insert_from_temp_sql 
-
-
+ 
 logger = logging.getLogger('egrid')
  
-def populate_subregion_data(engine=None, api_url=None): 
-    print('populate_subregion_data')
+def populate_subregion_data(engine=None, api_url=None, year=None): 
+  
+    print('Populating subregion data...')
     logger.debug("*populate_subregion_data")
 
     try:
-        response = requests.get(f"{api_url}subrgn")
+        response = requests.get(f"{api_url}{year}/subrgn")
         data = response.json() 
         
         if response.status_code == 200 and data.get('success'):

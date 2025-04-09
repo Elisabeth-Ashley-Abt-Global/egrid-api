@@ -847,8 +847,7 @@ class Sector(models.Model):
 
     class Meta:
         db_table = 'sector'
-
-
+ 
 class State(models.Model):
     fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
     pstatabb = models.CharField(max_length=2, null=False, blank=False)
@@ -856,8 +855,7 @@ class State(models.Model):
    
     class Meta:
         db_table = 'state'
-
-
+ 
 class StateAdjustedValues(models.Model): 
     id     = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
