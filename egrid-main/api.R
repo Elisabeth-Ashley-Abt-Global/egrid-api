@@ -19,9 +19,9 @@ function(year) {
 }
 
 
-#* @get /balancingauthority
-function() {
-  rds_file <- file.path(".", "data", "outputs", "ba_aggregation.RDS")
+#* @get /<year>/balancingauthority
+function(year) {
+  rds_file <- file.path(".", "data", "outputs", year, "ba_aggregation.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -30,9 +30,9 @@ function() {
   })
 }
 
-#* @get /generator
-function() {
-  rds_file <- file.path(".", "data", "outputs", "generator_file.RDS")
+#* @get /<year>/generator
+function(year) {
+  rds_file <- file.path(".", "data", "outputs", year, "generator_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -41,9 +41,9 @@ function() {
   })
 }
 
-#* @get /nerc
-function() {
-  rds_file <- file.path(".", "data", "outputs", "nerc_aggregation.RDS")
+#* @get /<year>/nerc
+function(year) {
+  rds_file <- file.path(".", "data", "outputs", year, "nerc_aggregation.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -65,9 +65,9 @@ function(year) {
   })
 }
 
-#* @get /subregion
-function() {
-  rds_file <- file.path(".", "data", "outputs", "subregion_file.RDS")
+#* @get /<year>/subregion
+function(year) {
+  rds_file <- file.path(".", "data", "outputs", year, "subregion_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -77,9 +77,9 @@ function() {
 }
 
 
-#* @get /unit
-function() {
-  rds_file <- file.path(".", "data", "outputs", "unit_file.RDS")
+#* @get /<year>/unit
+function(year) {
+  rds_file <- file.path(".", "data", "outputs", year, "unit_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
