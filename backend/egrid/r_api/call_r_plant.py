@@ -22,7 +22,13 @@ def populate_plant_data(engine=None, api_url=None):
 
             cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
 
-            new_ftg_cols = ['usgenato','usgenaco']
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['plngennb', 'plgenato', 'plgenaco', 'pltopr', 'plcopr', 'unco2e', 'bioco2e', 'chpco2e']
+            # Define new columns for dataframes (2023+ data)
+            new_adjusted_cols = ['plngennb'] # PlantAdjustedValues
+            new_resource_cols = ['pltopr','plcopr'] # PlantResourceMix
+            new_ftg_cols = ['plgenato','plgenaco'] # PlantFuelTypeGeneration
+            new_unadjusted_cols = ['unco2e', 'bioco2e', 'chpco2e', 'unc2esrc'] # PlantUnadjustedValues
 
             cast_to_float = ['lat', 'lon', 'plhtian', 'plhtioz',
                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
@@ -112,9 +118,12 @@ def populate_plant_data(engine=None, api_url=None):
             try: 
                 plantunadjustedvalues_df = df[['year', 'orispl', 'unnox', 'unnoxoz', 'unso2',
                                             'unco2', 'unch4', 'unn2o', 'unco2e', 'unhti',
-                                            'unhtioz', 'unhtit', 'unhtiozt', 'bionox', 'bionoxoz',
-                                            'bioso2', 'bioco2', 'bioch4', 'bion2o', 'bioco2e',
-                                            'chpchti', 'chpchtioz', 'chpnox', 'chpnoxoz', 'chpso2',
+                                            'unhtioz', 'unhtit', 'unhtiozt', 'unnoxsrc', 
+                                            'unnozsrc', 'unso2src', 'unch4src', 'unn2osrc', 
+                                            'unc2esrc', 'unhgsrc', 'unhtisrc', 'unhozsrc',
+                                            'bionox', 'bionoxoz', 'bioso2', 'bioco2', 
+                                            'bioch4', 'bion2o', 'bioco2e', 'chpchti', 
+                                            'chpchtioz', 'chpnox', 'chpnoxoz', 'chpso2',
                                             'chpco2', 'chpch4', 'chpn2o', 'chpco2e']].copy()
                 plantunadjustedvalues_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True)
             except Exception: 
