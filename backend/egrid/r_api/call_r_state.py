@@ -104,6 +104,7 @@ def populate_state_data(engine=None, api_url=None, year=None):
                 state_df = df[['fipsst', 'pstatabb', 'stnamepcap']].copy() 
             except Exception:
                 print('Error in State dataframe')
+
             # StateAdjustedValues
             try: 
                 stateadjustedvalues_df = df[['fipsst', 'sthtian', 'sthtioz', 'sthtiant', 
@@ -111,7 +112,7 @@ def populate_state_data(engine=None, api_url=None, year=None):
                                             'stnoxan', 'stnoxoz', 'stso2an', 'stco2an', 
                                             'stch4an', 'stn2oan', 'stco2eqa', 'sthgan', 'year']].copy()
                 if year >= 2023:
-                    # add 'bangennb' column to baadjustedvalues_df for records from 2023 onward
+                    # add 'stngennb' column to stadjustedvalues_df for records from 2023 onward
                     stateadjustedvalues_df['stngennb'] = df['stngennb']
                  
                 stateadjustedvalues_df.copy()

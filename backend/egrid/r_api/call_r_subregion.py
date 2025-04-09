@@ -69,11 +69,28 @@ def populate_subregion_data(engine=None, api_url=None):
                              'srtopr', 'srthpr', 'srcypr', 'srcnpr', 
                              'srcopr']
 
+            # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(int)
+                try:
+                    if year >= 2023:
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
+
+                except Exception as e:
+                    print('Error converting column to Int64:', col, e)
 
             for col in cast_to_float:
-                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+                try:
+                    if year >= 2023: # Double check this
+                        df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                    else:
+                        if col not in new_cols: 
+                            df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
+                            
+                except Exception as e:
+                    print('Error converting column to float:', col, e)
 
             year = df['year'].unique()[0] 
             print('year ', year)
@@ -85,9 +102,14 @@ def populate_subregion_data(engine=None, api_url=None):
             # SubrgnAdjustedValues
             try: 
                 subrgnadjustedvalues_df = df[['subrgn', 'srhtian', 'srhtioz', 'srhtiant', 
-                                            'srhtiozt', 'srngenan', 'srngenoz', 'srngennb', 
+                                            'srhtiozt', 'srngenan', 'srngenoz',  
                                             'srnoxan', 'srnoxoz', 'srso2an', 'srco2an', 
                                             'srch4an', 'srn2oan', 'srco2eqa', 'srhgan', 'year']].copy()
+                if year >= 2023: 
+                    # add 'srngennb' column to subrgnadjustedvalues_df for records from 2023 onward
+                    subrgnadjustedvalues_df['srngennb'] = df['srngennb']
+
+                subrgnadjustedvalues_df.copy()
                 subrgnadjustedvalues_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in SubrgnAdjustedValues dataframe')
@@ -130,9 +152,14 @@ def populate_subregion_data(engine=None, api_url=None):
             try: 
                 subrgnfueltypegeneration_df = df[['subrgn', 'srgenacl', 'srgenaol', 'srgenaso', 'srgenagt',
                                                 'srgenaof', 'srgenaop', 'srgenatn', 'srgenatr', 
-                                                'srgenato', 'srgenath', 'srgenacy', 'srgenacn',
-                                                'srgenaco', 'srgenags', 'srgenanc', 'srgenahy',
+                                                'srgenath', 'srgenacy', 'srgenacn',
+                                                'srgenags', 'srgenanc', 'srgenahy',
                                                 'srgenabm', 'srgenawi', 'year']].copy()
+                if year >= 2023: 
+                    for col in new_ftg_cols:
+                        subrgnfueltypegeneration_df[col] = df[col]
+
+                subrgnfueltypegeneration_df.copy()
                 subrgnfueltypegeneration_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in SubrgnFuelTypeGeneration dataframe')
@@ -156,8 +183,13 @@ def populate_subregion_data(engine=None, api_url=None):
                 subrgnresourcemix_df = df[['subrgn', 'srclpr', 'srolpr', 'srgspr', 
                                         'srncpr', 'srhypr', 'srbmpr', 'srwipr', 
                                         'srsopr', 'srgtpr', 'srofpr', 'sroppr', 
-                                        'srtnpr', 'srtrpr', 'srtopr', 'srthpr', 
-                                        'srcypr', 'srcnpr', 'srcopr']].copy()
+                                        'srtnpr', 'srtrpr', 'srthpr', 
+                                        'srcypr', 'srcnpr']].copy()
+                if year >= 2023: 
+                    for col in new_resource_cols: 
+                        subrgnresourcemix_df[col] = df[col]
+
+                subrgnresourcemix_df.copy()
                 subrgnresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in SubrgnResourceMix dataframe')
