@@ -20,6 +20,10 @@ def populate_unit_data(engine=None, api_url=None):
             df = pd.DataFrame(unit_data)
         
             cast_to_int = ['year', 'orispl', 'numgen', 'untyronl', 'sequnt']
+
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['stackht'] # TG: this is in UnitUnadjustedValues
+
             cast_to_float = ['hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
                              'so2an', 'co2an', 'hgan', 'stackht']
             

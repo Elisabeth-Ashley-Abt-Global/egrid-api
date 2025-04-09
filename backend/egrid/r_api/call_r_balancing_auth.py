@@ -20,6 +20,13 @@ def populate_balancing_auth_data(engine=None, api_url=None):
             df = pd.DataFrame(ba_data) 
 
             cast_to_int = ['year']
+
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['bangennb','bagenato','bagenaco','batopr','bacopr']
+            # Define new columns for dataframes (2023+ data)
+            new_resource_cols = ['batopr','bacopr']
+            new_ftg_cols = ['bagenato','bagenaco']
+
             cast_to_float = ['banamepcap', 'bahtian', 'bahtioz', 'bahtiant', 
                             'bahtiozt', 'bangenan', 'bangenoz', 'bangennb', 'banoxan', 'banoxoz', 
                             'baso2an', 'baco2an', 'bach4an', 'ban2oan', 'baco2eqa', 

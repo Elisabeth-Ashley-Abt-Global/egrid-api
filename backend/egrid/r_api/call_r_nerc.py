@@ -21,6 +21,13 @@ def populate_nerc_data(engine=None, api_url=None):
             df = pd.DataFrame(nerc_data)
             print('nerc data', df.head()) # for debugging
             cast_to_int = ['year']
+
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['nrngennb','nrgenato','nrgenaco','nrtopr','nrcopr']
+            # Define new columns for dataframes (2023+ data)
+            new_resource_cols = ['nrtopr','nrcopr']
+            new_ftg_cols = ['nrgenato','nrgenaco']
+
             cast_to_float = ['nrnamepcap', 'nrhtian', 'nrhtioz', 'nrhtiant', 
                              'nrhtiozt', 'nrngenan', 'nrngenoz', 'nrngennb', 
                              'nrnoxan', 'nrnoxoz', 'nrso2an', 'nrco2an', 

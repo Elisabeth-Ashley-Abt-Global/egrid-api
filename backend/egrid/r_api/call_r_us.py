@@ -20,6 +20,13 @@ def populate_us_data(engine=None, api_url=None):
             df = pd.DataFrame(us_data) 
 
             cast_to_int = ['year']
+
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['usngennb','usgenato','usgenaco','ustopr','uscopr']
+            # Define new columns for dataframes (2023+ data)
+            new_resource_cols = ['ustopr','uscopr']
+            new_ftg_cols = ['usgenato','usgenaco']
+
             cast_to_float = ['usnamepcap', 'ushtian', 'ushtioz', 'ushtiant', 
                             'ushtiozt', 'usngenan', 'usngenoz', 'usngennb', 'usnoxan', 'usnoxoz', 
                             'usso2an', 'usco2an', 'usch4an', 'usn2oan', 'usco2eqa', 

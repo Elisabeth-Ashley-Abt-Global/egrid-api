@@ -21,6 +21,13 @@ def populate_subregion_data(engine=None, api_url=None):
             df = pd.DataFrame(subregion_data)
         
             cast_to_int = ['year']
+
+            # Define the new columns to type cast (2023+ data)
+            new_cols = ['srngennb','srgenato','srgenaco','srtopr','srcopr']
+            # Define new columns for dataframes (2023+ data)
+            new_resource_cols = ['srtopr','srcopr']
+            new_ftg_cols = ['srgenato','srgenaco']
+
             cast_to_float = ['srnamepcap', 'srhtian', 'srhtioz', 'srhtiant', 
                              'srhtiozt', 'srngenan', 'srngenoz', 'srngennb', 
                              'srnoxan', 'srnoxoz', 'srso2an', 'srco2an', 

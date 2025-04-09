@@ -21,6 +21,9 @@ def populate_plant_data(engine=None, api_url=None):
             df = pd.DataFrame(plant_data) 
 
             cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
+
+            new_ftg_cols = ['usgenato','usgenaco']
+
             cast_to_float = ['lat', 'lon', 'plhtian', 'plhtioz',
                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
                             'plngennb', 'plnoxan', 'plnoxoz', 'plso2an',
