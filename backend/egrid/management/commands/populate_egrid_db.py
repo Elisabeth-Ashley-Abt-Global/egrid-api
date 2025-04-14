@@ -45,7 +45,7 @@ class Command(BaseCommand):
                     populate_balancing_auth_data(engine, api_url, year)  
 
                 case 'generator': 
-                    populate_generator_data(engine, api_url) # Fetch generator data from the R API
+                    populate_generator_data(engine, api_url, year) # Fetch generator data from the R API
 
                 case 'nerc':
                     populate_nerc_data(engine, api_url, year) 
