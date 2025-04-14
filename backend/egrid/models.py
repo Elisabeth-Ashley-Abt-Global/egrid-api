@@ -1437,7 +1437,6 @@ class UnitUnadjustedValues(models.Model):
     untopst  = models.CharField(max_length=2, null=True, blank=True) 
     fuelu1   = models.CharField(max_length=6, null=True, blank=True)
     hrsop    = models.FloatField(null=True, blank=True) 
-    so2ctldv = models.FloatField(null=True, blank=True)   # teagan is this correct?
     htian    = models.FloatField(null=True, blank=True)
     htioz    = models.FloatField(null=True, blank=True)
     noxan    = models.FloatField(null=True, blank=True)
@@ -1452,7 +1451,7 @@ class UnitUnadjustedValues(models.Model):
     so2src   = models.CharField(max_length=200, null=True, blank=True)
     co2src   = models.CharField(max_length=200, null=True, blank=True)
     hgsrc    = models.CharField(max_length=200, null=True, blank=True)
-    so2ctldc = models.CharField(max_length=10, null=True, blank=True)
+    so2ctldv = models.CharField(max_length=10, null=True, blank=True) 
     noxctldv = models.CharField(max_length=200, null=True, blank=True)
     hgctldv  = models.CharField(max_length=200, null=True, blank=True)
     untyronl = models.IntegerField(null=True, blank=True)
