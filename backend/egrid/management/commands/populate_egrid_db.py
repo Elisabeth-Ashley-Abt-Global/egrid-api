@@ -42,13 +42,13 @@ class Command(BaseCommand):
                    populate_plant_data(engine, api_url, year) # Fetch plant data from the R API
             
                 case 'balancing_authority':
-                    populate_balancing_auth_data(engine, api_url)  
+                    populate_balancing_auth_data(engine, api_url, year)  
 
                 case 'generator': 
                     populate_generator_data(engine, api_url) # Fetch generator data from the R API
 
                 case 'nerc':
-                    populate_nerc_data(engine, api_url) 
+                    populate_nerc_data(engine, api_url, year) 
 
                 case 'state':
                     populate_state_data(engine, api_url, year)
