@@ -7,17 +7,18 @@ from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
   
-def populate_us_data(engine=None, api_url=None):
+def populate_us_data(engine=None, api_url=None, year=None):
     print("*populate_us_data")
  
     try:
-        response = requests.get(f"{api_url}us")
+        response = requests.get(f"{api_url}{year}/us")
         data = response.json() 
         # print(data) 
         
         if response.status_code == 200 and data.get('success'):
             us_data = data.get('data', [])
             df = pd.DataFrame(us_data) 
+            print(df.head())
 
             cast_to_int = ['year']
 
@@ -27,7 +28,7 @@ def populate_us_data(engine=None, api_url=None):
             new_resource_cols = ['ustopr','uscopr']
             new_ftg_cols = ['usgenato','usgenaco']
 
-            cast_to_float = ['usnamepcap', 'ushtian', 'ushtioz', 'ushtiant', 
+            cast_to_float = ['usnamepcap', 'ushtian', 'ushtioz', 'ushtiant', 'usnbhg',
                             'ushtiozt', 'usngenan', 'usngenoz', 'usngennb', 'usnoxan', 'usnoxoz', 
                             'usso2an', 'usco2an', 'usch4an', 'usn2oan', 'usco2eqa', 
                             'usnoxrta', 'usnoxrto', 'usso2rta', 'usco2rta', 'usch4rta', 'usn2orta', 'usc2erta',
@@ -77,7 +78,7 @@ def populate_us_data(engine=None, api_url=None):
 
             # create tables 
             # US
-            us_df = df[['usnamepcap']] 
+            us_df = df[['usnamepcap', 'year']] 
 
             # UsAdjustedValues
             try: 
@@ -230,8 +231,8 @@ def populate_us_data(engine=None, api_url=None):
                     else:
                         conn.execute(text("""
                             update us
-                            set year = ust.year, 
-                                usnamepcap = ust.usnamepcap              
+                            set  usnamepcap = ust.usnamepcap,   
+                                year = ust.year         
                             from us_temp ust
                             where us.year = ust.year
                                 and us.usnamepcap = ust.usnamepcap;

@@ -5,6 +5,7 @@ from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
 from egrid.r_api.call_r_nerc import populate_nerc_data
 from egrid.r_api.call_r_state import populate_state_data 
+from egrid.r_api.call_r_us import populate_us_data
 # from egrid.r_api.call_r_unit import call_r_unit
 from sqlalchemy import create_engine, text 
 from urllib.parse import quote_plus
@@ -54,6 +55,9 @@ class Command(BaseCommand):
 
                 case 'subregion':
                     populate_subregion_data(engine, api_url, year) 
+
+                case 'us':
+                   populate_us_data(engine, api_url, year)
                     
                 # case 'unit': 
                 #    call_r_unit()

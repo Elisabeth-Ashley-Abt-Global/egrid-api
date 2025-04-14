@@ -88,6 +88,17 @@ function(year) {
   })
 }
 
+#* @get /<year>/us
+function(year) {
+  rds_file <- file.path(".", "data", "outputs", year, "us_aggregation.RDS")
+  tryCatch({
+    ba_data <- readRDS(rds_file)
+    list(success = TRUE, data = ba_data)
+  }, error = function(e) {
+    list(success = FALSE, error = e$message)
+  })
+}
+
 
 #* @post /process
 #* @param input_data:string

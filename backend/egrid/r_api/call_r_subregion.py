@@ -203,8 +203,7 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                 subrgnfueltypegeneration_df.to_sql('subrgn_fuel_type_generation_temp', con=engine, if_exists='replace', index=False)
                 subrgnnonbaseloadvalues_df.to_sql('subrgn_nonbaseload_values_temp', con=engine, if_exists='replace', index=False)
                 subrgnresourcemix_df.to_sql('subrgn_resource_mix_temp', con=engine, if_exists='replace', index=False)
-                print('test comment')
-
+                
                 with engine.connect() as conn:
                     trans = conn.begin()
                     
