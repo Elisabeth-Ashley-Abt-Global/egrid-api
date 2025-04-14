@@ -8,12 +8,12 @@ from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
  
-def populate_plant_data(engine=None, api_url=None): 
+def populate_plant_data(engine=None, api_url=None, year=None): 
     print('populate_plant_data')
     logger.debug("*populate_plant_data")
 
     try:
-        response = requests.get(f"{api_url}plant")
+        response = requests.get(f"{api_url}{year}/plant")
         data = response.json() 
        
         if response.status_code == 200 and data.get('success'):

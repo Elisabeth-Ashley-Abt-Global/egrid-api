@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from egrid.r_api.call_r_subregion import populate_subregion_data
-# from egrid.r_api.call_r_plant import populate_plant_data  # Import the function(s)  
+from egrid.r_api.call_r_plant import populate_plant_data  
 from egrid.r_api.call_r_balancing_auth import populate_balancing_auth_data
 from egrid.r_api.call_r_generator import populate_generator_data 
 from egrid.r_api.call_r_nerc import populate_nerc_data
@@ -38,8 +38,8 @@ class Command(BaseCommand):
     
         try:
            match table_name:
-                # case 'plant':
-                #    populate_plant_data(engine, api_url) # Fetch plant data from the R API
+                case 'plant':
+                   populate_plant_data(engine, api_url, year) # Fetch plant data from the R API
             
                 case 'balancing_authority':
                     populate_balancing_auth_data(engine, api_url)  
