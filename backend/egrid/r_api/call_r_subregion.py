@@ -9,17 +9,17 @@ logger = logging.getLogger('egrid')
  
 def populate_subregion_data(engine=None, api_url=None, year=None): 
   
-    print('Populating subregion data...')
-    logger.debug("*populate_subregion_data")
+    print('Populating subregion data...') 
 
     try:
-        response = requests.get(f"{api_url}{year}/subrgn")
+        response = requests.get(f"{api_url}{year}/subregion")
         data = response.json() 
-        
+      
         if response.status_code == 200 and data.get('success'):
+          
             subregion_data = data.get('data', [])
             df = pd.DataFrame(subregion_data)
-        
+            print('Subregion data:', df.head())
             cast_to_int = ['year']
 
             # Define the new columns to type cast (2023+ data)
@@ -68,7 +68,7 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                              'srofpr', 'sroppr', 'srtnpr', 'srtrpr',
                              'srtopr', 'srthpr', 'srcypr', 'srcnpr', 
                              'srcopr']
-
+    
             # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
                 try:
@@ -203,6 +203,7 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                 subrgnfueltypegeneration_df.to_sql('subrgn_fuel_type_generation_temp', con=engine, if_exists='replace', index=False)
                 subrgnnonbaseloadvalues_df.to_sql('subrgn_nonbaseload_values_temp', con=engine, if_exists='replace', index=False)
                 subrgnresourcemix_df.to_sql('subrgn_resource_mix_temp', con=engine, if_exists='replace', index=False)
+                print('test comment')
 
                 with engine.connect() as conn:
                     trans = conn.begin()
@@ -239,7 +240,7 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                         text("select count(*) from subrgn_resource_mix where year = :year"),
                         {"year": int(year)}
                     ).scalar()
-
+                     
                     # check count to insert or update the table
                     if subregion_cnt == 0:
                         conn.execute(text("""
@@ -257,6 +258,7 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                             from subregion_temp srt
                             where subregion.subrgn = srt.subrgn;
                         """))  
+
 
                     if subrgnadjustedvalues_cnt == 0:
                         sql = build_insert_from_temp_sql("subrgn_adjusted_values", subrgnadjustedvalues_df)
