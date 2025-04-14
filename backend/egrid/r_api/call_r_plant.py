@@ -14,11 +14,13 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
     try:
         response = requests.get(f"{api_url}{year}/plant")
-        data = response.json() 
+        data = response.json()  
+        # print('data', data)
        
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
             df = pd.DataFrame(plant_data) 
+            # print('plant data', df.head())
 
             cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
 
@@ -87,11 +89,12 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             
             # PlantAdjustedValues
+            #'plhgan'
             try: 
                 plantadjustedvalues_df = df[['year', 'orispl', 'plhtian', 'plhtioz',
                                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
                                             'plnoxan', 'plnoxoz', 'plso2an',
-                                            'plco2an', 'plch4an', 'pln2oan', 'plco2eqa', 'plhgan']].copy()
+                                            'plco2an', 'plch4an', 'pln2oan', 'plco2eqa']].copy()
                 if year >= 2023: 
                     plantadjustedvalues_df['plngennb'] = df['plngennb']
 
@@ -101,13 +104,16 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                 print('Error in PlantAdjustedValues dataframe')
 
             # PlantEmissionRate
+            #'plhgcrt'
+            #plhgrta
+            #plhgra
             try: 
                 plantemissionrate_df = df[['year', 'orispl', 'plnoxrta', 'plnoxrto', 'plso2rta', 'plco2rta',
-                                        'plch4rta', 'pln2orta', 'plc2erta', 'plhgrta', 'plnoxra',
+                                        'plch4rta', 'pln2orta', 'plc2erta', 'plnoxra',
                                         'plnoxro', 'plso2ra', 'plco2ra', 'plch4ra',
-                                        'pln2ora', 'plc2era', 'plhgra', 'plnoxcrt', 'plnoxcro',
+                                        'pln2ora', 'plc2era',  'plnoxcrt', 'plnoxcro',
                                         'plso2crt', 'plco2crt', 'plch4crt', 'pln2ocrt',
-                                        'plc2ecrt', 'plhgcrt']].copy()
+                                        'plc2ecrt']].copy()
                 plantemissionrate_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
             except Exception: 
                 print('Error in PlantEmissionRate dataframe')
@@ -216,7 +222,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                                      """)) 
                     else:
                         conn.execute(text("""
-                            update plant set pstatabb = plant_temp.pstatabb, 
+                            update plant set pstatabb = plt.pstatabb, 
                                     fipsst = plt.fipsst, 
                                     utlsrvid = plt.utlsrvid,
                                     bacode = plt.bacode, 
@@ -238,7 +244,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
                     if plantadjustedvalues_cnt == 0:
                         sql = build_insert_from_temp_sql("plant_adjusted_values", plantadjustedvalues_df)
-                        conn.execute(text(sql))  
+                        conn.execute(text(sql))   
                     else:
                         sql = update_from_temp_table( "plant_adjusted_values", plantadjustedvalues_df, 'orispl')
                         conn.execute(text(sql))    

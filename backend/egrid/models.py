@@ -1,5 +1,34 @@
 from django.db import models
 
+class Plant(models.Model):
+    seqplt   = models.IntegerField(null=True, blank=True) # seqplt
+    orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
+    pstatabb = models.CharField(max_length=1000, null=True, blank=True)
+    fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    pname    = models.CharField(max_length=1000, null=True, blank=True)
+    oprcode  = models.IntegerField(null=True, blank=True)
+    utlsrvid = models.IntegerField(null=True, blank=True)
+    sector   = models.CharField(max_length=1000, null=True, blank=True)
+    bacode   = models.CharField(max_length=1000, null=True, blank=True)
+    nerc     = models.CharField(max_length=1000, null=True, blank=True)
+    fipscnty = models.CharField(max_length=3, null=True, blank=True)
+    lat      = models.FloatField(null=True, blank=True)
+    lon      = models.FloatField(null=True, blank=True)
+    numunt   = models.IntegerField(null=True, blank=True)
+    numgen   = models.IntegerField(null=True, blank=True)
+    plprmfl  = models.CharField(max_length=1000, null=True, blank=True)
+    plfuelct = models.CharField(max_length=1000, null=True, blank=True)
+    coalflag = models.CharField(max_length=1000, null=True, blank=True)
+    subrgn   = models.CharField(null=True, blank=True, max_length=4) 
+    isorto   = models.CharField(null=True, blank=True, max_length=5)
+    namepcap = models.FloatField(null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant'
+
 class BalancingAuthority(models.Model): 
     bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
     baname = models.CharField(max_length=255)   
@@ -45,36 +74,6 @@ class BaAdjustedValues(models.Model):
 
     def __str__(self):
         return self.name
-
-class Plant(models.Model):
-    seqplt   = models.IntegerField(null=True, blank=True) # seqplt
-    orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
-    pstatabb = models.CharField(max_length=1000, null=True, blank=True)
-    fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
-    pname    = models.CharField(max_length=1000, null=True, blank=True)
-    oprcode  = models.IntegerField(null=True, blank=True)
-    utlsrvid = models.IntegerField(null=True, blank=True)
-    sector   = models.CharField(max_length=1000, null=True, blank=True)
-    bacode   = models.CharField(max_length=1000, null=True, blank=True)
-    nerc     = models.CharField(max_length=1000, null=True, blank=True)
-    fipscnty = models.CharField(max_length=3, null=True, blank=True)
-    lat      = models.FloatField(null=True, blank=True)
-    lon      = models.FloatField(null=True, blank=True)
-    numunt   = models.IntegerField(null=True, blank=True)
-    numgen   = models.IntegerField(null=True, blank=True)
-    plprmfl  = models.CharField(max_length=1000, null=True, blank=True)
-    plfuelct = models.CharField(max_length=1000, null=True, blank=True)
-    coalflag = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn   = models.CharField(null=True, blank=True, max_length=4) 
-    isorto   = models.CharField(null=True, blank=True, max_length=5)
-    namepcap = models.FloatField(null=True, blank=True)
-    
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'plant'
-
  
 class BaEmissionRate(models.Model):
     id     =  models.AutoField(primary_key=True) 
@@ -82,6 +81,7 @@ class BaEmissionRate(models.Model):
         BalancingAuthority,
         on_delete=models.CASCADE,  # Deletes BaEmissionRate records if the related BalancingAuthority is deleted
         db_column='bacode'          # Ensures the column in the database is still named 'bacode'
+
     )
     banoxrta = models.FloatField(null=True, blank=True)
     banoxrto = models.FloatField(null=True, blank=True)
@@ -638,7 +638,12 @@ class NercResourceMix(models.Model):
 class PlantDistributionSys(models.Model):
     oprcode = models.IntegerField(null=True, blank=True)
     oprname = models.CharField(max_length=255, null=False, blank=False)
-
+    orispl = models.ForeignKey(
+            Plant,
+            on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
+            db_column='orispl' ,        
+            to_field='orispl',
+        )
     def __str__(self):
         return self.name
 
@@ -651,7 +656,8 @@ class PlantAdjustedValues(models.Model):
     orispl = models.ForeignKey(
                 Plant,
                 on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
-                db_column='orispl'          
+                db_column='orispl',        
+                to_field='orispl',
             )
     plhtian  = models.FloatField(null=True, blank=True)
     plhtioz  = models.FloatField(null=True, blank=True)
@@ -682,7 +688,8 @@ class PlantEmissionRate (models.Model):
     orispl = models.ForeignKey(
                 Plant,
                 on_delete=models.CASCADE,  # Deletes PlantEmissionRate records if the related Plant is deleted
-                db_column='orispl'          
+                db_column='orispl',
+                to_field='orispl',      
             )
     plnoxrta = models.FloatField(blank=True, null=True)
     plnoxrto = models.FloatField(blank=True, null=True) 
@@ -722,7 +729,8 @@ class PlantFuelTypeGeneration (models.Model):
     orispl = models.ForeignKey(
                 Plant,
                 on_delete=models.CASCADE,  # Deletes PlantFuelTypeGeneration records if the related Plant is deleted
-                db_column='orispl'          
+                db_column='orispl',   
+                to_field='orispl',      
             )
     plgenacl = models.FloatField(null=True, blank=True)
     plgenaol = models.FloatField(null=True, blank=True)
@@ -756,7 +764,8 @@ class PlantResourceMix(models.Model):
     orispl = models.ForeignKey(
                 Plant,
                 on_delete=models.CASCADE,  # Deletes PlantResourceMix records if the related Plant is deleted
-                db_column='orispl'          
+                db_column='orispl',  
+                to_field='orispl',        
             )
     plclpr = models.FloatField(null=True, blank=True)
     plolpr = models.FloatField(null=True, blank=True)
@@ -790,7 +799,8 @@ class PlantUnadjustedValues(models.Model):
     orispl = models.ForeignKey(
                 Plant,
                 on_delete=models.CASCADE,  # Deletes PlantUnadjustedValues records if the related Plant is deleted
-                db_column='orispl'          
+                db_column='orispl',
+                to_field='orispl',          
             )
     unnox     = models.FloatField(null=True, blank=True)
     unnoxoz   = models.FloatField(null=True, blank=True)
