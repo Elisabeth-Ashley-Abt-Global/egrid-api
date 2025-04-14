@@ -7,12 +7,12 @@ from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
 
-def populate_unit_data(engine=None, api_url=None): 
+def populate_unit_data(engine=None, api_url=None, year=None): 
     print('populate_unit_data')
     logger.debug("*populate_unit_data")
 
     try:
-        response = requests.get(f"{api_url}unit")
+        response = requests.get(f"{api_url}{year}/unit")
         data = response.json() 
 
         if response.status_code == 200 and data.get('success'):
@@ -59,6 +59,7 @@ def populate_unit_data(engine=None, api_url=None):
                         'prgcode', 'botfirty', 'numgen']].copy()
 
             # UnitUnadjustedValues
+            # 'untopst'
             try: 
                 unitunadjustedvalues_df = df[['year', 'orispl', 'unitid', 'prmvr', 'untopst', 'fuelu1',
                                               'hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
@@ -96,7 +97,7 @@ def populate_unit_data(engine=None, api_url=None):
                             insert into unit (
                                 sequnt, orispl, unitid, prmvr, capdflag, 
                                 prgcode, botfirty, numgen
-                            ) select sequnt, orispl, unitid, prmvr capdflag, 
+                            ) select sequnt, orispl, unitid, prmvr, capdflag, 
                                 prgcode, botfirty, numgen
                             from unit_temp;
                         """))  
@@ -119,14 +120,14 @@ def populate_unit_data(engine=None, api_url=None):
 
                     if unitunadjustedvalues_cnt == 0:
                         conn.execute(text("""
-                            insert into unit (
-                                year, orispl, unitid, prmvr, untopst, fuelu1,
+                            insert into unit_unadjusted_values (
+                                orispl, unitid, prmvr, untopst, fuelu1,
                                 hrsop, htian, htioz, noxan, noxoz, 
                                 so2an, co2an, hgan, htiansrc, 
                                 htiozsrc, noxansrc, noxozsrc, so2src, 
                                 co2src, hgsrc, so2ctldv, noxctldv, 
                                 hgctldv, untyronl, stackht
-                            ) select year, orispl, unitid, prmvr, untopst, fuelu1,
+                            ) select  orispl, unitid, prmvr, untopst, fuelu1,
                                 hrsop, htian, htioz, noxan, noxoz, 
                                 so2an, co2an, hgan, htiansrc, 
                                 htiozsrc, noxansrc, noxozsrc, so2src, 
@@ -136,9 +137,8 @@ def populate_unit_data(engine=None, api_url=None):
                         """))  
                     else:
                         conn.execute(text("""
-                            update unit
-                            set year = unt.year, 
-                                orispl = unt.orispl, 
+                            update unit_unadjusted_values
+                            set orispl = unt.orispl, 
                                 unitid = unt.unitid, 
                                 prmvr = unt.prmvr,
                                 untopst = unt.untopst, 

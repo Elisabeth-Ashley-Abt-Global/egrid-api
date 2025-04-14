@@ -6,7 +6,7 @@ from egrid.r_api.call_r_generator import populate_generator_data
 from egrid.r_api.call_r_nerc import populate_nerc_data
 from egrid.r_api.call_r_state import populate_state_data 
 from egrid.r_api.call_r_us import populate_us_data
-# from egrid.r_api.call_r_unit import call_r_unit
+from egrid.r_api.call_r_unit import populate_unit_data
 from sqlalchemy import create_engine, text 
 from urllib.parse import quote_plus
 from django.conf import settings
@@ -59,8 +59,8 @@ class Command(BaseCommand):
                 case 'us':
                    populate_us_data(engine, api_url, year)
                     
-                # case 'unit': 
-                #    call_r_unit()
+                case 'unit': 
+                   populate_unit_data(engine, api_url, year)  
                 # case _:
                 #    # call all of them
                 #     call_r_unit()
