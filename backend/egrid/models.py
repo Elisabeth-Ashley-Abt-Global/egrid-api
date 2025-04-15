@@ -1,5 +1,6 @@
 from django.db import models
 
+# Make bacode a FK
 class Plant(models.Model):
     seqplt   = models.IntegerField(null=True, blank=True) # seqplt
     orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
@@ -639,11 +640,12 @@ class PlantDistributionSys(models.Model):
     oprcode = models.IntegerField(null=True, blank=True)
     oprname = models.CharField(max_length=255, null=False, blank=False)
     orispl = models.ForeignKey(
-            Plant,
-            on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
-            db_column='orispl' ,        
-            to_field='orispl',
-        )
+                Plant,
+                on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
+                db_column='orispl',        
+                to_field='orispl',
+    )
+
     def __str__(self):
         return self.name
 
@@ -1444,7 +1446,7 @@ class UnitUnadjustedValues(models.Model):
         db_column='orispl'          
     ) 
     prmvr    = models.CharField(max_length=2, null=True, blank=True) 
-    untopst  = models.CharField(max_length=2, null=True, blank=True) 
+    untopst  = models.CharField(max_length=100, null=True, blank=True) 
     fuelu1   = models.CharField(max_length=6, null=True, blank=True)
     hrsop    = models.FloatField(null=True, blank=True) 
     htian    = models.FloatField(null=True, blank=True)
