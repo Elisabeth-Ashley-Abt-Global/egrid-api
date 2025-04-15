@@ -7,11 +7,11 @@ from .utils import update_from_temp_table, build_insert_from_temp_sql
 
 logger = logging.getLogger('egrid')
   
-def populate_balancing_auth_data(engine=None, api_url=None):
+def populate_balancing_auth_data(engine=None, api_url=None, year=None):
     print("*populate_balancing_auth_data")
  
     try:
-        response = requests.get(f"{api_url}balancingauthority")
+        response = requests.get(f"{api_url}{year}/balancingauthority")
         data = response.json() 
         # print(data) 
         

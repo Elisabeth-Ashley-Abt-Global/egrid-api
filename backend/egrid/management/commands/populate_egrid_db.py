@@ -12,7 +12,7 @@ from urllib.parse import quote_plus
 from django.conf import settings
 # from egrid.logic.queries.plant_queries import create_or_update_plant
 import logging
-schema = 'egrid-dev'
+schema = 'public'
 options = quote_plus(f'-c search_path={schema}')
 
 logger = logging.getLogger('egrid')
@@ -42,13 +42,13 @@ class Command(BaseCommand):
                    populate_plant_data(engine, api_url, year) # Fetch plant data from the R API
             
                 case 'balancing_authority':
-                    populate_balancing_auth_data(engine, api_url)  
+                    populate_balancing_auth_data(engine, api_url, year)  
 
                 case 'generator': 
-                    populate_generator_data(engine, api_url) # Fetch generator data from the R API
+                    populate_generator_data(engine, api_url, year) # Fetch generator data from the R API
 
                 case 'nerc':
-                    populate_nerc_data(engine, api_url) 
+                    populate_nerc_data(engine, api_url, year) 
 
                 case 'state':
                     populate_state_data(engine, api_url, year)

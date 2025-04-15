@@ -187,7 +187,11 @@ def populate_us_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    us_cnt = conn.execute(text("select count(*) from us;")).scalar()
+                    
+                    us_cnt = conn.execute(
+                        text("select count(*) from us where year = :year"),
+                        {"year": int(year)}
+                    ).scalar()  
                     
                     # count to see if table is empty
                     usadjustedvalues_cnt = conn.execute(

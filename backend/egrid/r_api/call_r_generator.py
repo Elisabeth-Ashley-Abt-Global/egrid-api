@@ -10,12 +10,12 @@ logger = logging.getLogger('egrid')
  
 from django.conf import settings
   
-def populate_generator_data(engine=None, api_url=None):
+def populate_generator_data(engine=None, api_url=None, year=None):
     print('populate_generator_data')
     logger.debug("*populate_generator_data")
      
     try:
-        response = requests.get(f"{api_url}generator")
+        response = requests.get(f"{api_url}{year}/generator")
         data = response.json()  
 
         if response.status_code == 200 and data.get('success'):
