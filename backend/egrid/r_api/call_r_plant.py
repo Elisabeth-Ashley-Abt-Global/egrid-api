@@ -180,10 +180,9 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
+  
+                    plant_cnt = conn.execute(text("select count(*) from plant_temp where orispl not in (select orispl from plant)")).scalar()
 
-                    # count to see if table is empty
-                    plant_cnt = conn.execute(text("select count(*) from plant;")).scalar()
-                
                     plantadjustedvalues_cnt = conn.execute(
                         text("select count(*) from plant_adjusted_values where year = :year"),
                         {"year": int(year)}
@@ -209,17 +208,18 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                         {"year": int(year)}
                     ).scalar()
 
-                    # check count to insert or update the table 
+                    # check count to insert or update the table  
                     if plant_cnt == 0:
                         conn.execute(text("""insert into plant (
                                     pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
                                     lat, lon, numunt, numgen, plprmfl, plfuelct, 
                                     oprcode, sector, pname, coalflag, seqplt
-                                     ) 
+                                        ) 
                                     select pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
                                             lat, lon, numunt, numgen, plprmfl, plfuelct, 
-                                            oprcode, sector, pname, coalflag, seqplt from plant_temp;
-                                     """)) 
+                                            oprcode, sector, pname, coalflag, seqplt from plant_temp
+                                            where orispl not in (select orispl from plant);
+                                        """)) 
                     else:
                         conn.execute(text("""
                             update plant set pstatabb = plt.pstatabb, 

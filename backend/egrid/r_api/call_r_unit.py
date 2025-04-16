@@ -85,8 +85,17 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                     trans = conn.begin()
 
                     # count to see if table is empty
-                    unit_cnt = conn.execute(text("select count(*) from unit;")).scalar()
-
+                    unit_cnt = conn.execute(text("""
+                            SELECT COUNT(*)
+                            FROM unit_temp ut
+                            WHERE EXISTS (
+                                SELECT 1 FROM unit u
+                                WHERE u.orispl = ut.orispl
+                                AND u.unitid = ut.unitid
+                                AND u.prmvr = ut.prmvr
+                            )
+                        """)).scalar()
+                    
                     unitunadjustedvalues_cnt = conn.execute(
                         text("select count(*) from unit_unadjusted_values where year = :year"),
                         {"year": int(year)}
@@ -96,29 +105,42 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                     if unit_cnt == 0:
                         conn.execute(text("""
                             insert into unit (
-                                sequnt, orispl, unitid, prmvr, capdflag, 
-                                prgcode, botfirty, numgen
-                            ) select sequnt, orispl, unitid, prmvr, capdflag, 
-                                prgcode, botfirty, numgen
-                            from unit_temp;
+                            sequnt, orispl, unitid, prmvr, capdflag, 
+                            prgcode, botfirty, numgen
+                            )
+                            select 
+                                ut.sequnt, ut.orispl, ut.unitid, ut.prmvr, ut.capdflag, 
+                                ut.prgcode, ut.botfirty, ut.numgen
+                            from unit_temp ut
+                            where not exists (
+                                select 1 
+                                from unit u
+                                where u.orispl = ut.orispl
+                                and u.unitid = ut.unitid
+                                and u.prmvr = ut.prmvr
+                            ); 
                         """))  
+                        print('inserted unit data')
                     else:
                         conn.execute(text("""
                             update unit
-                            set sequnt = unt.sequnt
-                                orispl = unt.orispl, 
-                                unitid = unt.unitid, 
-                                prmvr = unt.prmvr
-                                capdflag = unt.capdflag, 
-                                prgcode = unt.prgcode, 
-                                botfirty = unt.botfirty, 
+                            set 
+                                sequnt = unt.sequnt,
+                                orispl = unt.orispl,
+                                unitid = unt.unitid,
+                                prmvr = unt.prmvr,
+                                capdflag = unt.capdflag,
+                                prgcode = unt.prgcode,
+                                botfirty = unt.botfirty,
                                 numgen = unt.numgen
                             from unit_temp unt
-                            where unit.orispl = unt.orispl and
-                                unit.unitid = unt.unitid and
-                                unit.prmvr = unt.prmvr;
+                            where unit.orispl = unt.orispl
+                            and unit.unitid = unt.unitid
+                            and unit.prmvr = unt.prmvr;
                         """))  
-#fuelu1,
+                        print('updated unit data')
+
+#fuelu1,            
                     # if unitunadjustedvalues_cnt == 0:
                     #     conn.execute(text("""
                     #         insert into unit_unadjusted_values (
@@ -165,13 +187,13 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                     #             untyronl = unt.untyronl, 
                     #             stackht = unt.stackht
                     #         from unit_temp unt
-                    #         where unit.orispl = unt.orispl and
-                    #             unit.unitid = unt.unitid and
-                    #             unit.prmvr = unt.prmvr;
+                    #         where orispl = unt.orispl and
+                    #             unitid = unt.unitid and
+                    #             prmvr = unt.prmvr;
                     #     """))  
 
                     # drop temp tables
-                    conn.execute(text("drop table unit_temp;"))
+                    # conn.execute(text("drop table unit_temp;"))
                     # conn.execute(text("drop table unit_unadjusted_values_temp;")) 
                     trans.commit() 
 

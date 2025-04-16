@@ -1419,7 +1419,8 @@ class Unit(models.Model):
     orispl = models.ForeignKey(
         Plant,
         on_delete=models.CASCADE,  # Deletes Unit records if the related Plant is deleted
-        db_column='orispl'          
+        db_column='orispl',   
+        to_field='orispl'       
     ) 
     prmvr    = models.CharField(max_length=2, null=True, blank=True) 
     capdflag = models.CharField(max_length=50, null=True, blank=True)
