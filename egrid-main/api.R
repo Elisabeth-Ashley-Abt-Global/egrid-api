@@ -8,7 +8,7 @@ function() {
 #* @get /<year>/plant
 function(year) {
   rds_file <- file.path(
-    ".", "data", "outputs", year, "plant_file.RDS"
+    ".", "egrid_outputs", year, "plant_file.RDS"
   )
   tryCatch({
     plant_data <- readRDS(rds_file)
@@ -21,7 +21,7 @@ function(year) {
 
 #* @get /<year>/balancingauthority
 function(year) {
-  rds_file <- file.path(".", "data", "outputs", year, "ba_aggregation.RDS")
+  rds_file <- file.path(".", "egrid_outputs", year, "ba_aggregation.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -32,7 +32,7 @@ function(year) {
 
 #* @get /<year>/generator
 function(year) {
-  rds_file <- file.path(".", "data", "outputs", year, "generator_file.RDS")
+  rds_file <- file.path(".", "egrid_outputs", year, "generator_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -43,7 +43,7 @@ function(year) {
 
 #* @get /<year>/nerc
 function(year) {
-  rds_file <- file.path(".", "data", "outputs", year, "nerc_aggregation.RDS")
+  rds_file <- file.path(".", "egrid_outputs", year, "nerc_aggregation.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -55,7 +55,7 @@ function(year) {
 #* @get /<year>/state
 function(year) {
   rds_file <- file.path(
-    ".", "data", "outputs", year, "state_aggregation.RDS"
+    ".", "egrid_outputs", year, "state_aggregation.RDS"
   )
   tryCatch({
     ba_data <- readRDS(rds_file)
@@ -67,7 +67,7 @@ function(year) {
 
 #* @get /<year>/subregion
 function(year) {
-  rds_file <- file.path(".", "data", "outputs", year, "subregion_file.RDS")
+  rds_file <- file.path(".", "egrid_outputs", year, "subregion_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -79,7 +79,7 @@ function(year) {
 
 #* @get /<year>/unit
 function(year) {
-  rds_file <- file.path(".", "data", "outputs", year, "unit_file.RDS")
+  rds_file <- file.path(".", "egrid_outputs", year, "unit_file.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
@@ -90,7 +90,7 @@ function(year) {
 
 #* @get /<year>/us
 function(year) {
-  rds_file <- file.path(".", "data", "outputs", year, "us_aggregation.RDS")
+  rds_file <- file.path(".", "egrid_outputs", year, "us_aggregation.RDS")
   tryCatch({
     ba_data <- readRDS(rds_file)
     list(success = TRUE, data = ba_data)
