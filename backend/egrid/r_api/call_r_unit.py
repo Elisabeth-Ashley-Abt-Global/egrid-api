@@ -52,7 +52,7 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                     print('Error converting column to float:', col, e)
 
             year = df['year'].unique()[0] 
-            print('year ', year)    
+              
 
             # create tables
             # Unit
@@ -95,7 +95,6 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                                 AND u.prmvr = ut.prmvr
                             )
                         """)).scalar()
-                    
                     unitunadjustedvalues_cnt = conn.execute(
                         text("select count(*) from unit_unadjusted_values where year = :year"),
                         {"year": int(year)}
@@ -141,59 +140,59 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                         print('updated unit data')
 
 #fuelu1,            
-                    # if unitunadjustedvalues_cnt == 0:
-                    #     conn.execute(text("""
-                    #         insert into unit_unadjusted_values (
-                    #             orispl, unitid, prmvr,
-                    #             hrsop, htian, htioz, noxan, noxoz, 
-                    #             so2an, co2an, hgan, htiansrc, 
-                    #             htiozsrc, noxansrc, noxozsrc, so2src, 
-                    #             co2src, hgsrc, so2ctldv, noxctldv, 
-                    #             hgctldv, untyronl, stackht
-                    #         ) select  orispl, unitid, prmvr,  
-                    #             hrsop, htian, htioz, noxan, noxoz, 
-                    #             so2an, co2an, hgan, htiansrc, 
-                    #             htiozsrc, noxansrc, noxozsrc, so2src, 
-                    #             co2src, hgsrc, so2ctldv, noxctldv, 
-                    #             hgctldv, untyronl, stackht
-                    #         from unit_temp;
-                    #     """))  
-                    # else:
-                    #     conn.execute(text("""
-                    #         update unit_unadjusted_values
-                    #         set orispl = unt.orispl, 
-                    #             unitid = unt.unitid, 
-                    #             prmvr = unt.prmvr,
-                    #             untopst = unt.untopst, 
-                    #             fuelu1 = unt.fuelu1,
-                    #             hrsop = unt.hrsop, 
-                    #             htian = unt.htian, 
-                    #             htioz = unt.htioz, 
-                    #             noxan = unt.noxan, 
-                    #             noxoz = unt.noxoz, 
-                    #             so2an = unt.so2an, 
-                    #             co2an = unt.co2an, 
-                    #             hgan = unt.hgan, 
-                    #             htiansrc = unt.htiansrc, 
-                    #             htiozsrc = unt.htiozsrc, 
-                    #             noxansrc = unt.noxansrc, 
-                    #             noxozsrc = unt.noxozsrc, 
-                    #             so2src = unt.so2src, 
-                    #             co2src = unt.co2src, 
-                    #             hgsrc = unt.hgsrc, 
-                    #             so2ctldv = unt.so2ctldv, 
-                    #             noxctldv = unt.noxctldv, 
-                    #             hgctldv = unt.hgctldv, 
-                    #             untyronl = unt.untyronl, 
-                    #             stackht = unt.stackht
-                    #         from unit_temp unt
-                    #         where orispl = unt.orispl and
-                    #             unitid = unt.unitid and
-                    #             prmvr = unt.prmvr;
-                    #     """))  
+                    if unitunadjustedvalues_cnt == 0:
+                        conn.execute(text("""
+                            insert into unit_unadjusted_values (
+                                orispl, unitid, prmvr,
+                                hrsop, htian, htioz, noxan, noxoz, 
+                                so2an, co2an, hgan, htiansrc, 
+                                htiozsrc, noxansrc, noxozsrc, so2src, 
+                                co2src, hgsrc, so2ctldv, noxctldv, 
+                                hgctldv, untyronl, stackht
+                            ) select  orispl, unitid, prmvr,  
+                                hrsop, htian, htioz, noxan, noxoz, 
+                                so2an, co2an, hgan, htiansrc, 
+                                htiozsrc, noxansrc, noxozsrc, so2src, 
+                                co2src, hgsrc, so2ctldv, noxctldv, 
+                                hgctldv, untyronl, stackht
+                            from unit_temp;
+                        """))  
+                    else:
+                        conn.execute(text("""
+                            update unit_unadjusted_values
+                            set orispl = unt.orispl, 
+                                unitid = unt.unitid, 
+                                prmvr = unt.prmvr,
+                                untopst = unt.untopst, 
+                                fuelu1 = unt.fuelu1,
+                                hrsop = unt.hrsop, 
+                                htian = unt.htian, 
+                                htioz = unt.htioz, 
+                                noxan = unt.noxan, 
+                                noxoz = unt.noxoz, 
+                                so2an = unt.so2an, 
+                                co2an = unt.co2an, 
+                                hgan = unt.hgan, 
+                                htiansrc = unt.htiansrc, 
+                                htiozsrc = unt.htiozsrc, 
+                                noxansrc = unt.noxansrc, 
+                                noxozsrc = unt.noxozsrc, 
+                                so2src = unt.so2src, 
+                                co2src = unt.co2src, 
+                                hgsrc = unt.hgsrc, 
+                                so2ctldv = unt.so2ctldv, 
+                                noxctldv = unt.noxctldv, 
+                                hgctldv = unt.hgctldv, 
+                                untyronl = unt.untyronl, 
+                                stackht = unt.stackht
+                            from unit_temp unt
+                            where orispl = unt.orispl and
+                                unitid = unt.unitid and
+                                prmvr = unt.prmvr;
+                        """))  
 
                     # drop temp tables
-                    # conn.execute(text("drop table unit_temp;"))
+                    conn.execute(text("drop table unit_temp;"))
                     # conn.execute(text("drop table unit_unadjusted_values_temp;")) 
                     trans.commit() 
 

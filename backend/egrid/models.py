@@ -1,5 +1,20 @@
 from django.db import models
 
+ 
+class BalancingAuthority(models.Model): 
+    bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
+    baname = models.CharField(max_length=255)   
+    banamepcap = models.FloatField(null=True, blank=True)
+  
+    class Meta:
+        db_table = "balancing_authority"
+
+    def __str__(self):
+        return self.name
+    
+# class BaAnnualCombustion(models.Model):
+# 
+
 # Make bacode a FK
 class Plant(models.Model):
     seqplt   = models.IntegerField(null=True, blank=True) # seqplt
@@ -10,7 +25,13 @@ class Plant(models.Model):
     oprcode  = models.IntegerField(null=True, blank=True)
     utlsrvid = models.IntegerField(null=True, blank=True)
     sector   = models.CharField(max_length=1000, null=True, blank=True)
-    bacode   = models.CharField(max_length=1000, null=True, blank=True)
+    # bacode   = models.CharField(max_length=1000, null=True, blank=True)
+    bacode = models.ForeignKey(
+        BalancingAuthority,
+        to_field='bacode',
+        on_delete=models.CASCADE,  
+        db_column='bacode'          
+    )   
     nerc     = models.CharField(max_length=1000, null=True, blank=True)
     fipscnty = models.CharField(max_length=3, null=True, blank=True)
     lat      = models.FloatField(null=True, blank=True)
@@ -30,25 +51,14 @@ class Plant(models.Model):
     class Meta:
         db_table = 'plant'
 
-class BalancingAuthority(models.Model): 
-    bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
-    baname = models.CharField(max_length=255)   
-    banamepcap = models.FloatField(null=True, blank=True)
 
-    class Meta:
-        db_table = "balancing_authority"
-
-    def __str__(self):
-        return self.name
-    
-# class BaAnnualCombustion(models.Model):
-# 
 class BaAdjustedValues(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing ID
     bacode = models.ForeignKey(
         BalancingAuthority, 
         on_delete=models.CASCADE, # Deletes BaAnnualCombustion records if the related BalancingAuthority is delet
-        db_column='bacode'
+        db_column='bacode',
+        to_field='bacode'
     )
     banamepcap = models.FloatField(null=True, blank=True)
     bahtian    = models.FloatField(null=True, blank=True, db_comment='BA annual heat input from combustion (MMBtu)')  # BA annual heat input (MMBtu)
@@ -72,6 +82,9 @@ class BaAdjustedValues(models.Model):
  
     class Meta:
         db_table = "ba_adjusted_values"
+        constraints = [
+            models.UniqueConstraint(fields=["bacode", "year"], name="bav_unique_bacode_year")
+        ]
 
     def __str__(self):
         return self.name
@@ -81,8 +94,8 @@ class BaEmissionRate(models.Model):
     bacode = models.ForeignKey(
         BalancingAuthority,
         on_delete=models.CASCADE,  # Deletes BaEmissionRate records if the related BalancingAuthority is deleted
-        db_column='bacode'          # Ensures the column in the database is still named 'bacode'
-
+        db_column='bacode',          # Ensures the column in the database is still named 'bacode'
+        to_field='bacode' 
     )
     banoxrta = models.FloatField(null=True, blank=True)
     banoxrto = models.FloatField(null=True, blank=True)
@@ -117,13 +130,17 @@ class BaEmissionRate(models.Model):
 
     class Meta:
         db_table = 'ba_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["bacode", "year"], name="ber_unique_bacode_year")
+        ]
 
 class BaFuelTypeEmissionRate(models.Model):
     id       =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
         on_delete=models.CASCADE,   # Deletes BaFuelTypeEmissionRate records if the related BalancingAuthority is deleted
-        db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
+        db_column='bacode',          # Ensures the column in the database is still named 'ba_id'
+        to_field='bacode'
     )
     bacnoxrt  = models.FloatField(blank=True, null=True)
     baonoxrt  = models.FloatField(blank=True, null=True)
@@ -192,13 +209,17 @@ class BaFuelTypeEmissionRate(models.Model):
 
     class Meta:
         db_table = 'ba_fuel_type_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["bacode", "year"], name="ba_fuel_type_emission_rate_unique_bacode_year")
+        ]
  
 class BaFuelTypeGeneration(models.Model):
     id =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
         BalancingAuthority,
         on_delete=models.CASCADE,   # Deletes BaFuelTypeGeneration records if the related BalancingAuthority is deleted
-        db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
+        db_column='bacode',          # Ensures the column in the database is still named 'ba_id'
+        to_field='bacode'
     )
     bagenacl = models.FloatField(blank=True, null=True)
     bagenaol = models.FloatField(blank=True, null=True)
@@ -225,6 +246,9 @@ class BaFuelTypeGeneration(models.Model):
 
     class Meta:
         db_table = 'ba_fuel_type_generation'
+        constraints = [
+            models.UniqueConstraint(fields=["bacode", "year"], name="ba_fuel_type_gen_unique_bacode_year")
+        ]
 
 
 class BaNonBaseloadValues(models.Model):
@@ -232,7 +256,8 @@ class BaNonBaseloadValues(models.Model):
     bacode = models.ForeignKey(
         BalancingAuthority,
         on_delete=models.CASCADE,   # Deletes BaNonBaseloadValues records if the related BalancingAuthority is deleted
-        db_column='bacode'          # Ensures the column in the database is still named 'ba_id'
+        db_column='bacode',          # Ensures the column in the database is still named 'ba_id'
+        to_field='bacode'
     )
     banbnox  = models.FloatField(null=True, blank=True)
     banbnxo  = models.FloatField(null=True, blank=True)
@@ -271,6 +296,9 @@ class BaNonBaseloadValues(models.Model):
 
     class Meta:
         db_table = 'ba_nonbaseload_values'
+        constraints = [
+            models.UniqueConstraint(fields=["bacode", "year"], name="ba_nonbaseload_values_unique_bacode_year")
+        ]
 
 
 class BaResourceMix(models.Model):
@@ -278,7 +306,8 @@ class BaResourceMix(models.Model):
     bacode = models.ForeignKey(
         BalancingAuthority,
         on_delete=models.CASCADE,   # Deletes BaResourceMix records if the related BalancingAuthority is deleted
-        db_column='bacode'          # Ensures the column in the database is still named 'bacode'
+        db_column='bacode',          # Ensures the column in the database is still named 'bacode'
+        to_field='bacode'
     )
     baclpr = models.FloatField(blank=True, null=True)
     baolpr = models.FloatField(blank=True, null=True)
@@ -305,6 +334,9 @@ class BaResourceMix(models.Model):
 
     class Meta:
         db_table = 'ba_resource_mix'
+        constraints = [
+            models.UniqueConstraint(fields=["bacode", "year"], name="ba_resource_mix_unique_bacode_year")
+        ]
 
 
 class County(models.Model):  # TG: This needs to include fipsst as well since fipscnty can have duplicates across states
@@ -1444,7 +1476,8 @@ class UnitUnadjustedValues(models.Model):
     orispl = models.ForeignKey(
         Plant,
         on_delete=models.CASCADE,  # Deletes Unit records if the related Plant is deleted
-        db_column='orispl'          
+        db_column='orispl',
+        to_field='orispl'         
     ) 
     prmvr    = models.CharField(max_length=2, null=True, blank=True) 
     untopst  = models.CharField(max_length=100, null=True, blank=True) 
