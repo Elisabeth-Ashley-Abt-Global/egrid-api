@@ -8,12 +8,11 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
   
 def populate_balancing_auth_data(engine=None, api_url=None, year=None):
-    print("*populate_balancing_auth_data")
+    print("Starting script to populate balancing authority data for year ", year)
  
     try:
         response = requests.get(f"{api_url}{year}/balancingauthority")
-        data = response.json() 
-        # print(data) 
+        data = response.json()  
         
         if response.status_code == 200 and data.get('success'):
             ba_data = data.get('data', [])
@@ -70,11 +69,9 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
                             
                 except Exception as e:
                     print('Error converting column to float:', col, e)
- 
-
+  
             year = df['year'].unique()[0] 
-            print('year ', year)
- 
+          
             # BalancingAuthority
             ba_df = df[['bacode', 'baname', 'banamepcap']] 
 
@@ -175,7 +172,6 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
                 baresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in BaResourceMix dataframe')
-
  
             tables = ["ba_adjusted_values", "ba_emission_rate", "ba_fuel_type_emission_rate", "ba_fuel_type_generation", "ba_nonbaseload_values", "ba_resource_mix"]
 
@@ -187,7 +183,6 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
                 "ba_nonbaseload_values": banonbaseloadvalues_df,
                 "ba_resource_mix": baresourcemix_df
             }
- 
            
             try:
                 # build temp tables, replace will replace the table if it already exists
@@ -209,7 +204,6 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
                                         set baname = excluded.baname,
                                         banamepcap = excluded.banamepcap;"""))
                     
-  
                     for table in tables:
                         try:
                             df = df_map[table]
