@@ -683,8 +683,8 @@ class PlantDistributionSys(models.Model):
 
     class Meta:
         db_table = 'plant_distribution_sys'
-
-
+       
+ 
 class PlantAdjustedValues(models.Model): 
     id = models.AutoField(primary_key=True) 
     orispl = models.ForeignKey(
@@ -715,6 +715,9 @@ class PlantAdjustedValues(models.Model):
 
     class Meta:
         db_table = 'plant_adjusted_values'
+        constraints = [
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_adjusted_values_unique_bacode_year")
+        ]
 
 
 class PlantEmissionRate (models.Model):
@@ -756,6 +759,9 @@ class PlantEmissionRate (models.Model):
 
     class Meta:
         db_table = 'plant_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_emission_rate_unique_bacode_year")
+        ]
 
 
 class PlantFuelTypeGeneration (models.Model): 
@@ -791,6 +797,9 @@ class PlantFuelTypeGeneration (models.Model):
 
     class Meta:
         db_table = 'plant_fuel_type_generation'
+        constraints = [
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_fuel_type_gen_unique_bacode_year")
+        ]
 
 
 class PlantResourceMix(models.Model):
@@ -826,6 +835,9 @@ class PlantResourceMix(models.Model):
 
     class Meta:
         db_table = 'plant_resource_mix'
+        constraints = [
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_resource_mix_unique_bacode_year")
+        ]
 
 
 class PlantUnadjustedValues(models.Model): 
@@ -880,6 +892,9 @@ class PlantUnadjustedValues(models.Model):
 
     class Meta:
         db_table = 'plant_unadjusted_values'
+        constraints = [
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_unadjusted_values_unique_bacode_year")
+        ]
 
 
 class Sector(models.Model):

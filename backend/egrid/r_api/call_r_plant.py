@@ -3,24 +3,20 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql 
+from .utils import record_insert_update 
   
-
 logger = logging.getLogger('egrid')
  
-def populate_plant_data(engine=None, api_url=None, year=None): 
-    print('populate_plant_data')
-    logger.debug("*populate_plant_data")
-
+def populate_plant_data(engine=None, api_url=None, year=None):  
+    print("Starting script to populate plant data for year ", year)
+ 
     try:
         response = requests.get(f"{api_url}{year}/plant")
-        data = response.json()  
-        # print('data', data)
+        data = response.json()   
        
         if response.status_code == 200 and data.get('success'):
             plant_data = data.get('data', [])
-            df = pd.DataFrame(plant_data) 
-            # print('plant data', df.head())
+            df = pd.DataFrame(plant_data)  
 
             cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
 
@@ -79,9 +75,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                     print('Error converting column to float:', col, e) 
 
             year = df['year'].unique()[0] 
-            print('year ', year)
-
-            # create tables
+         
             # Plant
             plant_df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 
                             'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
@@ -169,6 +163,17 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             except Exception: 
                 print('Error PlantUnadjustedValues dataframe')
 
+            tables = ["plant_adjusted_values", "plant_emission_rate",
+                    "plant_fuel_type_generation", "plant_resource_mix", "plant_unadjusted_values"]
+            
+            df_map = {
+                "plant_adjusted_values": plantadjustedvalues_df,
+                "plant_emission_rate": plantemissionrate_df,
+                "plant_fuel_type_generation": plantfueltypegeneration_df,
+                "plant_resource_mix": plantresourcemix_df,
+                "plant_unadjusted_values": plantunadjustedvalues_df
+            }
+
             try:
                 # build temp tables, replace will replace the table if it already exists
                 plant_df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
@@ -180,102 +185,49 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-  
-                    plant_cnt = conn.execute(text("select count(*) from plant_temp where orispl not in (select orispl from plant)")).scalar()
+    
+                    conn.execute(text("""
+                        insert into plant (
+                            orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
+                            numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
+                            coalflag, seqplt
+                        )
+                        select
+                            orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
+                            numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
+                            coalflag, seqplt
+                        from plant_temp
+                        on conflict (orispl) do update
+                        set
+                            pstatabb = excluded.pstatabb,
+                            fipsst = excluded.fipsst,
+                            utlsrvid = excluded.utlsrvid,
+                            bacode = excluded.bacode,
+                            nerc = excluded.nerc,
+                            lat = excluded.lat,
+                            lon = excluded.lon,
+                            numunt = excluded.numunt,
+                            numgen = excluded.numgen,
+                            plprmfl = excluded.plprmfl,
+                            plfuelct = excluded.plfuelct,
+                            oprcode = excluded.oprcode,
+                            sector = excluded.sector,
+                            pname = excluded.pname,
+                            coalflag = excluded.coalflag,
+                            seqplt = excluded.seqplt; 
+                    """))
 
-                    plantadjustedvalues_cnt = conn.execute(
-                        text("select count(*) from plant_adjusted_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()  
-
-                    plantemissionrate_cnt = conn.execute(
-                        text("select count(*) from plant_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    plantfueltypegeneration_cnt = conn.execute(
-                        text("select count(*) from plant_fuel_type_generation where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    plantresourcemix_cnt = conn.execute(
-                        text("select count(*) from plant_resource_mix where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    plantunadjustedvalues_cnt = conn.execute(
-                        text("select count(*) from plant_unadjusted_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    # check count to insert or update the table  
-                    if plant_cnt == 0:
-                        conn.execute(text("""insert into plant (
-                                    pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
-                                    lat, lon, numunt, numgen, plprmfl, plfuelct, 
-                                    oprcode, sector, pname, coalflag, seqplt
-                                        ) 
-                                    select pstatabb, fipsst, orispl, utlsrvid, bacode, nerc, 
-                                            lat, lon, numunt, numgen, plprmfl, plfuelct, 
-                                            oprcode, sector, pname, coalflag, seqplt from plant_temp
-                                            where orispl not in (select orispl from plant);
-                                        """)) 
-                    else:
-                        conn.execute(text("""
-                            update plant set pstatabb = plt.pstatabb, 
-                                    fipsst = plt.fipsst, 
-                                    utlsrvid = plt.utlsrvid,
-                                    bacode = plt.bacode, 
-                                    nerc = plt.nerc,  
-                                    lat = plt.lat, 
-                                    lon = plt.lon, 
-                                    numunt = plt.numunt, 
-                                    numgen = plt.numgen, 
-                                    plprmfl = plt.plprmfl, 
-                                    plfuelct = plt.plfuelct, 
-                                    oprcode = plt.oprcode, 
-                                    sector = plt.sector, 
-                                    pname = plt.pname, 
-                                    coalflag = plt.coalflag, 
-                                    seqplt = plt.seqplt 
-                            from plant_temp plt
-                            where plant.orispl = plt.orispl;
-                        """))
-
-                    if plantadjustedvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("plant_adjusted_values", plantadjustedvalues_df)
-                        conn.execute(text(sql))   
-                    else:
-                        sql = update_from_temp_table( "plant_adjusted_values", plantadjustedvalues_df, 'orispl')
-                        conn.execute(text(sql))    
-
-                    if plantemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("plant_emission_rate", plantemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("plant_emission_rate", plantemissionrate_df, 'orispl')
-                        conn.execute(text(sql))  
-
-                    if plantfueltypegeneration_cnt == 0:
-                        sql = build_insert_from_temp_sql("plant_fuel_type_generation", plantfueltypegeneration_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("plant_fuel_type_generation", plantfueltypegeneration_df, 'orispl')
-                        conn.execute(text(sql)) 
-
-                    if plantresourcemix_cnt == 0:
-                        sql = build_insert_from_temp_sql("plant_resource_mix", plantresourcemix_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("plant_resource_mix", plantresourcemix_df, 'orispl')
-                        conn.execute(text(sql))
-
-                    if plantunadjustedvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("plant_unadjusted_values", plantunadjustedvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table( "plant_unadjusted_values", plantunadjustedvalues_df, 'orispl')
-                        conn.execute(text(sql))   
+                    for table in tables:
+                        try:
+                            df = df_map[table]
+                            if not df.empty:
+                                sql = record_insert_update(table, df, unique_field="orispl")
+                                conn.execute(text(sql))
+                                print(f"Successfully upserted: {table}")
+                            else:
+                                print(f"Skipped empty DataFrame for: {table}")
+                        except Exception as e:
+                            print(f"Error processing {table}: {e}")
 
                     # drop temp tables
                     conn.execute(text("drop table plant_temp;"))
