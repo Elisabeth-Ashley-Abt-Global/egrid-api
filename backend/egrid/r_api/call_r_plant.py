@@ -154,7 +154,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                 plantunadjustedvalues_df = df[['year', 'orispl', 'unnox', 'unnoxoz', 'unso2',
                                             'unco2', 'unch4', 'unn2o', 'unhti',
                                             'unhtioz', 'unhtit', 'unhtiozt', 'unnoxsrc', 
-                                            'unnozsrc', 'unso2src', 'unch4src', 'unn2osrc', 
+                                            'unnozsrc', 'unso2src', 'unco2src', 'unch4src', 'unn2osrc', 
                                             'unhgsrc', 'unhtisrc', 'unhozsrc',
                                             'bionox', 'bionoxoz', 'bioso2', 'bioco2', 
                                             'bioch4', 'bion2o', 'chpchti', 

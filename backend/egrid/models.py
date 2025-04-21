@@ -819,6 +819,7 @@ class PlantUnadjustedValues(models.Model):
     unnoxsrc  = models.CharField(max_length=15, null=True, blank=True)
     unnozsrc  = models.CharField(max_length=15, null=True, blank=True)
     unso2src  = models.CharField(max_length=15, null=True, blank=True)
+    unco2src  = models.CharField(max_length=15, null=True, blank=True)
     unch4src  = models.CharField(max_length=15, null=True, blank=True)
     unn2osrc  = models.CharField(max_length=15, null=True, blank=True)
     unc2esrc  = models.CharField(max_length=15, null=True, blank=True)
