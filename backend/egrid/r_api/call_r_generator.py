@@ -1,15 +1,12 @@
 # File to communicate with the R API
-import requests 
-from egrid.models import Generator, Plant
-import logging 
-import pandas as pd
-from django.db import connection
-from sqlalchemy import create_engine, text
+import requests  
+import logging
+import pandas as pd  
+from sqlalchemy import text 
+from .utils import record_insert_update 
 
 logger = logging.getLogger('egrid')
- 
-from django.conf import settings
-  
+   
 def populate_generator_data(engine=None, api_url=None, year=None):
     print('populate_generator_data')
     logger.debug("*populate_generator_data")
@@ -43,6 +40,12 @@ def populate_generator_data(engine=None, api_url=None, year=None):
                                 'genstat', 'prmvr', 'fuelg1', 'namepcap' ,'cfact',
                                 'genntan', 'genntoz', 'genersrc', 'genyronl', 'genyrret']]
             
+            tables = ["generation"]
+            
+            df_map = {
+                "generation": generation_df,
+            }
+
             try: 
                 gen_df.to_sql('generator_temp', con=engine, if_exists='replace', index=False) 
                 generation_df.to_sql('generation_temp', con=engine, if_exists='replace', index=False)

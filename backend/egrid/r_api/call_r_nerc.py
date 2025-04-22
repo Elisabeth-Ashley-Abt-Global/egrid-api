@@ -3,7 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql 
+from .utils import record_insert_update
 
 
 logger = logging.getLogger('egrid')
@@ -19,7 +19,7 @@ def populate_nerc_data(engine=None, api_url=None, year=None):
         if response.status_code == 200 and data.get('success'):
             nerc_data = data.get('data', [])
             df = pd.DataFrame(nerc_data)
-            print('nerc data', df.head()) # for debugging
+            #print('nerc data', df.head()) # for debugging
             cast_to_int = ['year']
 
             # Define the new columns to type cast (2023+ data)
@@ -182,7 +182,7 @@ def populate_nerc_data(engine=None, api_url=None, year=None):
                 nercresourcemix_df = df[['nerc', 'nrclpr', 'nrolpr', 'nrgspr', 
                                         'nrncpr', 'nrhypr', 'nrbmpr', 'nrwipr', 
                                         'nrsopr', 'nrgtpr', 'nrofpr', 'nroppr', 
-                                        'nrtnpr', 'nrtrpr', 'nrthpr', 
+                                        'nrtnpr', 'nrtrpr', 'nrthpr',
                                         'nrcypr', 'nrcnpr']].copy()
                 if year >= 2023: 
                     for col in new_resource_cols: 
@@ -192,6 +192,18 @@ def populate_nerc_data(engine=None, api_url=None, year=None):
                 nercresourcemix_df.replace({"--": None, "N/A": None, "": None}, inplace=True)
             except Exception: 
                 print('Error in NercResourceMix dataframe')
+
+            tables = ["nerc_adjusted_values", "nerc_emission_rate", "nerc_fuel_type_emission_rate",
+                    "nerc_fuel_type_generation", "nerc_nonbaseload_values", "nerc_resource_mix"]
+            
+            df_map = {
+                "nerc_adjusted_values": nercadjustedvalues_df,
+                "nerc_emission_rate": nercemissionrate_df,
+                "nerc_fuel_type_emission_rate": nercfueltypeemissionrate_df, 
+                "nerc_fuel_type_generation": nercfueltypegeneration_df,
+                "nerc_nonbaseload_values": nercnonbaseloadvalues_df, 
+                "nerc_resource_mix": nercresourcemix_df
+            }
 
             try:
                 # build temp tables, replace will replace the table if it already exists
@@ -205,98 +217,24 @@ def populate_nerc_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    nerc_cnt = conn.execute(text("select count(*) from nerc_region;")).scalar()
+                    conn.execute(text("""insert into nerc_region (nerc, nercname, nrnamepcap)
+                                        select nerc, nercname, nrnamepcap
+                                        from nerc_region_temp
+                                        on conflict (nerc) do update 
+                                        set nercname = excluded.nercname,
+                                        nrnamepcap = excluded.nrnamepcap;"""))
                     
-                    # count to see if table is empty
-                    nercadjustedvalues_cnt = conn.execute(
-                        text("select count(*) from nerc_adjusted_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()  
-
-                    nercemissionrate_cnt = conn.execute(
-                        text("select count(*) from nerc_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    nercfueltypeemissionrate_cnt = conn.execute(
-                        text("select count(*) from nerc_fuel_type_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    nercfueltypegeneration_cnt = conn.execute(
-                        text("select count(*) from nerc_fuel_type_generation where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    nercnonbaseloadvalues_cnt = conn.execute(
-                        text("select count(*) from nerc_nonbaseload_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    nercresourcemix_cnt = conn.execute(
-                        text("select count(*) from nerc_resource_mix where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    # check count to insert or update the table
-                    if nerc_cnt == 0:
-                        conn.execute(text("""
-                            insert into nerc_region (
-                                nerc, nercname, nrnamepcap
-                            ) select nerc, nercname, nrnamepcap 
-                            from nerc_region_temp;
-                        """))  
-                    else:
-                        conn.execute(text("""
-                            update balancing_authority 
-                            set nerc = nrt.nerc, 
-                                nercname = nrt.nercname,
-                                nrnamepcap = nrt.nrnamepcap              
-                            from nerc_region_temp nrt
-                            where nerc.nerc = nrt.nerc;
-                        """)) 
-
-                    if nercadjustedvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("nerc_adjusted_values", nercadjustedvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table( "nerc_adjusted_values", nercadjustedvalues_df, "nerc")
-                        conn.execute(text(sql))    
-
-                    if nercemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("nerc_emission_rate", nercemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("nerc_emission_rate", nercemissionrate_df, "nerc")
-                        conn.execute(text(sql))  
-
-                    if nercfueltypeemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("nerc_fuel_type_emission_rate", nercfueltypeemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("nerc_fuel_type_emission_rate", nercfueltypeemissionrate_df, "nerc")
-                        conn.execute(text(sql)) 
-
-                    if nercfueltypegeneration_cnt == 0:
-                        sql = build_insert_from_temp_sql("nerc_fuel_type_generation", nercfueltypegeneration_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("nerc_fuel_type_generation", nercfueltypegeneration_df, "nerc")
-                        conn.execute(text(sql)) 
-
-                    if nercnonbaseloadvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("nerc_nonbaseload_values", nercnonbaseloadvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("nerc_nonbaseload_values", nercnonbaseloadvalues_df, "nerc")
-                        conn.execute(text(sql)) 
-
-                    if nercresourcemix_cnt == 0:
-                        sql = build_insert_from_temp_sql("nerc_resource_mix", nercresourcemix_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("nerc_resource_mix", nercresourcemix_df, "nerc")
-                        conn.execute(text(sql)) 
+                    for table in tables:
+                        try:
+                            df = df_map[table]
+                            if not df.empty:
+                                sql = record_insert_update(table, df, unique_field="nerc")
+                                conn.execute(text(sql))
+                                print(f"Successfully upserted: {table}")
+                            else:
+                                print(f"Skipped empty DataFrame for: {table}")
+                        except Exception as e:
+                            print(f"Error processing {table}: {e}")
 
                     # drop temp tables
                     conn.execute(text("drop table nerc_region_temp;"))

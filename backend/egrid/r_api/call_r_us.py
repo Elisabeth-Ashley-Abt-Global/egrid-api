@@ -3,7 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql 
+from .utils import record_insert_update
 
 logger = logging.getLogger('egrid')
   
@@ -18,7 +18,7 @@ def populate_us_data(engine=None, api_url=None, year=None):
         if response.status_code == 200 and data.get('success'):
             us_data = data.get('data', [])
             df = pd.DataFrame(us_data) 
-            print(df.head())
+            #print(df.head())
 
             cast_to_int = ['year']
 
@@ -175,6 +175,18 @@ def populate_us_data(engine=None, api_url=None, year=None):
             except Exception: 
                 print('Error in UsResourceMix dataframe')
 
+            tables = ["us_adjusted_values", "us_emission_rate", "us_fuel_type_emission_rate", 
+                      "us_fuel_type_generation", "us_nonbaseload_values", "us_resource_mix"]
+
+            df_map = {
+                "us_adjusted_values": usadjustedvalues_df,
+                "us_emission_rate": usemissionrate_df,
+                "us_fuel_type_emission_rate": usfueltypeemissionrate_df,
+                "us_fuel_type_generation": usfueltypegeneration_df,
+                "us_nonbaseload_values": usnonbaseloadvalues_df,
+                "us_resource_mix": usresourcemix_df
+            }
+
             try:
                 # build temp tables, replace will replace the table if it already exists
                 us_df.to_sql('us_temp', con=engine, if_exists='replace', index=False) 
@@ -188,101 +200,24 @@ def populate_us_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
                     
-                    us_cnt = conn.execute(
-                        text("select count(*) from us where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()  
+                    conn.execute(text("""insert into us (year, usnamepcap)
+                                        select year, usnamepcap
+                                        from us_temp
+                                        on conflict (year, usnamepcap) do update
+                                        set usnamepcap = excluded.usnamepcap, 
+                                            year = excluded.year;"""))
                     
-                    # count to see if table is empty
-                    usadjustedvalues_cnt = conn.execute(
-                        text("select count(*) from us_adjusted_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()  
-
-                    usemissionrate_cnt = conn.execute(
-                        text("select count(*) from us_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    usfueltypeemissionrate_cnt = conn.execute(
-                        text("select count(*) from us_fuel_type_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    usfueltypegeneration_cnt = conn.execute(
-                        text("select count(*) from us_fuel_type_generation where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    usnonbaseloadvalues_cnt = conn.execute(
-                        text("select count(*) from us_nonbaseload_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    usresourcemix_cnt = conn.execute(
-                        text("select count(*) from us_resource_mix where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    # check count to insert or update the table
-                    if us_cnt == 0:
-                        conn.execute(text("""
-                            insert into us (
-                                year, usnamepcap
-                            ) select year, usnamepcap
-                            from us_temp;
-                        """))  
-                    else:
-                        conn.execute(text("""
-                            update us
-                            set  usnamepcap = ust.usnamepcap,   
-                                year = ust.year         
-                            from us_temp ust
-                            where us.year = ust.year
-                                and us.usnamepcap = ust.usnamepcap;
-                        """)) 
-
-                    if usadjustedvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("us_adjusted_values", usadjustedvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table( "us_adjusted_values", usadjustedvalues_df, "usnamepcap")
-                        conn.execute(text(sql))    
-
-                    if usemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("us_emission_rate", usemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("us_emission_rate", usemissionrate_df, "usnamepcap")
-                        conn.execute(text(sql))  
-
-                    if usfueltypeemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("us_fuel_type_emission_rate", usfueltypeemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("us_fuel_type_emission_rate", usfueltypeemissionrate_df, "usnamepcap")
-                        conn.execute(text(sql)) 
-
-                    if usfueltypegeneration_cnt == 0:
-                        sql = build_insert_from_temp_sql("us_fuel_type_generation", usfueltypegeneration_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("us_fuel_type_generation", usfueltypegeneration_df, "usnamepcap")
-                        conn.execute(text(sql)) 
-
-                    if usnonbaseloadvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("us_nonbaseload_values", usnonbaseloadvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("us_nonbaseload_values", usnonbaseloadvalues_df, "usnamepcap")
-                        conn.execute(text(sql)) 
-
-                    if usresourcemix_cnt == 0:
-                        sql = build_insert_from_temp_sql("us_resource_mix", usresourcemix_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("us_resource_mix", usresourcemix_df, "usnamepcap")
-                        conn.execute(text(sql)) 
+                    for table in tables:
+                        try:
+                            df = df_map[table]
+                            if not df.empty:
+                                sql = record_insert_update(table, df, unique_field="usnamepcap")
+                                conn.execute(text(sql))
+                                print(f"Successfully upserted: {table}")
+                            else:
+                                print(f"Skipped empty DataFrame for: {table}")
+                        except Exception as e:
+                            print(f"Error processing {table}: {e}") 
 
                     # drop temp tables
                     conn.execute(text("drop table us_temp;"))

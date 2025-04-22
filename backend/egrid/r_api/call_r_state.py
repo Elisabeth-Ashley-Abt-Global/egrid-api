@@ -3,7 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql 
+from .utils import record_insert_update
 
 
 logger = logging.getLogger('egrid')
@@ -22,7 +22,6 @@ def populate_state_data(engine=None, api_url=None, year=None):
             # print(df.head())
             cast_to_int = ['year']
             
-            # step 1
             # Define the new columns to type cast (2023+ data)
             new_cols = ['stngennb', 'stgenato','stgenaco','sttopr','stcopr']
             # Define new columns for dataframes (2023+ data)
@@ -71,7 +70,6 @@ def populate_state_data(engine=None, api_url=None, year=None):
                              'stcopr'] 
             #'stc2ecrt', 
           
-            # step 2
             # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
                 try:
@@ -204,6 +202,17 @@ def populate_state_data(engine=None, api_url=None, year=None):
             except Exception: 
                 print('Error in StateResourceMix dataframe') 
 
+            tables = ["state_adjusted_values", "state_emission_rate", "state_fuel_type_emission_rate", 
+                      "state_fuel_type_generation", "state_nonbaseload_values", "state_resource_mix"]
+
+            df_map = {
+                "state_adjusted_values": stateadjustedvalues_df,
+                "state_emission_rate": stateemissionrate_df,
+                "state_fuel_type_emission_rate": statefueltypeemissionrate_df,
+                "state_fuel_type_generation": statefueltypegeneration_df,
+                "state_nonbaseload_values": statenonbaseloadvalues_df,
+                "state_resource_mix": stateresourcemix_df
+            }
 
             try:
                 # build temp tables, replace will replace the table if it already exists
@@ -218,98 +227,24 @@ def populate_state_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
                     
-                    # count to see if table is empty
-                    state_cnt = conn.execute(text("select count(*) from state;")).scalar()
-
-                    stateadjustedvalues_cnt = conn.execute(
-                        text("select count(*) from state_adjusted_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()  
-
-                    stateemissionrate_cnt = conn.execute(
-                        text("select count(*) from state_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    statefueltypeemissionrate_cnt = conn.execute(
-                        text("select count(*) from state_fuel_type_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    statefueltypegeneration_cnt = conn.execute(
-                        text("select count(*) from state_fuel_type_generation where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    statenonbaseloadvalues_cnt = conn.execute(
-                        text("select count(*) from state_nonbaseload_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    stateresourcemix_cnt = conn.execute(
-                        text("select count(*) from state_resource_mix where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    # check count to insert or update the table
-                    if state_cnt == 0:
-                        conn.execute(text("""
-                            insert into state (
-                                fipsst, pstatabb, stnamepcap
-                            ) select fipsst, pstatabb, stnamepcap
-                            from state_temp;
-                        """))  
-                    else:
-                        conn.execute(text("""
-                            update state
-                            set fipsst = stt.fipsst, 
-                                pstatabb = stt.pstatabb,
-                                stnamepcap = stt.stnamepcap              
-                            from state_temp stt
-                            where state.fipsst = stt.fipsst;
-                        """)) 
-
-                    if stateadjustedvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("state_adjusted_values", stateadjustedvalues_df)
-                        conn.execute(text(sql))   
-                    else:
-                        sql = update_from_temp_table( "state_adjusted_values", stateadjustedvalues_df, "fipsst")
-                        conn.execute(text(sql))     
- 
-                    if stateemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("state_emission_rate", stateemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("state_emission_rate", stateemissionrate_df, "fipsst")
-                        conn.execute(text(sql))  
-
-                    if statefueltypeemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("state_fuel_type_emission_rate", statefueltypeemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("state_fuel_type_emission_rate", statefueltypeemissionrate_df, "fipsst")
-                        conn.execute(text(sql)) 
-
-                    if statefueltypegeneration_cnt == 0:
-                        sql = build_insert_from_temp_sql("state_fuel_type_generation", statefueltypegeneration_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("state_fuel_type_generation", statefueltypegeneration_df, "fipsst")
-                        conn.execute(text(sql)) 
-
-                    if statenonbaseloadvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("state_nonbaseload_values", statenonbaseloadvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("state_nonbaseload_values", statenonbaseloadvalues_df, "fipsst")
-                        conn.execute(text(sql)) 
-
-                    if stateresourcemix_cnt == 0:
-                        sql = build_insert_from_temp_sql("state_resource_mix", stateresourcemix_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("state_resource_mix", stateresourcemix_df, "fipsst")
-                        conn.execute(text(sql)) 
+                    conn.execute(text("""insert into state (fipsst, pstatabb, stnamepcap)
+                                        select fipsst, pstatabb, stnamepcap
+                                        from state_temp
+                                        on conflict (fipsst) do update 
+                                        set pstatabb = excluded.pstatabb,
+                                        stnamepcap = excluded.stnamepcap;"""))
+                    
+                    for table in tables:
+                        try:
+                            df = df_map[table]
+                            if not df.empty:
+                                sql = record_insert_update(table, df, unique_field="fipsst")
+                                conn.execute(text(sql))
+                                print(f"Successfully upserted: {table}")
+                            else:
+                                print(f"Skipped empty DataFrame for: {table}")
+                        except Exception as e:
+                            print(f"Error processing {table}: {e}")
 
                     # drop temp tables
                     conn.execute(text("drop table state_temp;"))

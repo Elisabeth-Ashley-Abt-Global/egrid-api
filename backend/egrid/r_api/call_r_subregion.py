@@ -3,7 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql 
+from .utils import record_insert_update
  
 logger = logging.getLogger('egrid')
  
@@ -19,7 +19,7 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
           
             subregion_data = data.get('data', [])
             df = pd.DataFrame(subregion_data)
-            print('Subregion data:', df.head())
+            #print('Subregion data:', df.head())
             cast_to_int = ['year']
 
             # Define the new columns to type cast (2023+ data)
@@ -194,6 +194,18 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
             except Exception: 
                 print('Error in SubrgnResourceMix dataframe')
 
+            tables = ["subrgn_adjusted_values", "subrgn_emission_rate", "subrgn_fuel_type_emission_rate", 
+                      "subrgn_fuel_type_generation", "subrgn_nonbaseload_values", "subrgn_resource_mix"]
+
+            df_map = {
+                "subrgn_adjusted_values": subrgnadjustedvalues_df,
+                "subrgn_emission_rate": subrgnemissionrate_df,
+                "subrgn_fuel_type_emission_rate": subrgnfueltypeemissionrate_df,
+                "subrgn_fuel_type_generation": subrgnfueltypegeneration_df,
+                "subrgn_nonbaseload_values": subrgnnonbaseloadvalues_df,
+                "subrgn_resource_mix": subrgnresourcemix_df
+            }
+
             try:
                 # build temp tables, replace will replace the table if it already exists
                 subregion_df.to_sql('subregion_temp', con=engine, if_exists='replace', index=False) 
@@ -207,99 +219,24 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
                     
-                    # count to see if table is empty
-                    subregion_cnt = conn.execute(text("select count(*) from subregion;")).scalar()
-
-                    subrgnadjustedvalues_cnt = conn.execute(
-                        text("select count(*) from subrgn_adjusted_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()  
-
-                    subrgnemissionrate_cnt = conn.execute(
-                        text("select count(*) from subrgn_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    subrgnfueltypeemissionrate_cnt = conn.execute(
-                        text("select count(*) from subrgn_fuel_type_emission_rate where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    subrgnfueltypegeneration_cnt = conn.execute(
-                        text("select count(*) from subrgn_fuel_type_generation where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    subrgnnonbaseloadvalues_cnt = conn.execute(
-                        text("select count(*) from subrgn_nonbaseload_values where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-
-                    subrgnresourcemix_cnt = conn.execute(
-                        text("select count(*) from subrgn_resource_mix where year = :year"),
-                        {"year": int(year)}
-                    ).scalar()
-                     
-                    # check count to insert or update the table
-                    if subregion_cnt == 0:
-                        conn.execute(text("""
-                            insert into subregion (
-                                subrgn, srname, srnamepcap
-                            ) select subrgn, srname, srnamepcap
-                            from subregion_temp;
-                        """))  
-                    else:
-                        conn.execute(text("""
-                            update subregion
-                            set subrgn = srt.subrgn, 
-                                srname = srt.srname,
-                                srnamepcap = srt.srnamepcap              
-                            from subregion_temp srt
-                            where subregion.subrgn = srt.subrgn;
-                        """))  
-
-
-                    if subrgnadjustedvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("subrgn_adjusted_values", subrgnadjustedvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table( "subrgn_adjusted_values", subrgnadjustedvalues_df, 'subrgn')
-                        conn.execute(text(sql))    
-
-                    if subrgnemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("subrgn_emission_rate", subrgnemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("subrgn_emission_rate", subrgnemissionrate_df, 'subrgn')
-                        conn.execute(text(sql))  
-
-                    if subrgnfueltypeemissionrate_cnt == 0:
-                        sql = build_insert_from_temp_sql("subrgn_fuel_type_emission_rate", subrgnfueltypeemissionrate_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("subrgn_fuel_type_emission_rate", subrgnfueltypeemissionrate_df, 'subrgn')
-                        conn.execute(text(sql)) 
-
-                    if subrgnfueltypegeneration_cnt == 0:
-                        sql = build_insert_from_temp_sql("subrgn_fuel_type_generation", subrgnfueltypegeneration_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("subrgn_fuel_type_generation", subrgnfueltypegeneration_df, 'subrgn')
-                        conn.execute(text(sql)) 
-
-                    if subrgnnonbaseloadvalues_cnt == 0:
-                        sql = build_insert_from_temp_sql("subrgn_nonbaseload_values", subrgnnonbaseloadvalues_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("subrgn_nonbaseload_values", subrgnnonbaseloadvalues_df, 'subrgn')
-                        conn.execute(text(sql)) 
-
-                    if subrgnresourcemix_cnt == 0:
-                        sql = build_insert_from_temp_sql("subrgn_resource_mix", subrgnresourcemix_df)
-                        conn.execute(text(sql))  
-                    else:
-                        sql = update_from_temp_table("subrgn_resource_mix", subrgnresourcemix_df, 'subrgn')
-                        conn.execute(text(sql)) 
+                    conn.execute(text("""insert into subregion (subrgn, srname, srnamepcap)
+                                        select subrgn, srname, srnamepcap
+                                        from subregion_temp
+                                        on conflict (subrgn) do update 
+                                        set srname = excluded.srname,
+                                        srnamepcap = excluded.srnamepcap;"""))
+                    
+                    for table in tables:
+                        try:
+                            df = df_map[table]
+                            if not df.empty:
+                                sql = record_insert_update(table, df, unique_field="subrgn")
+                                conn.execute(text(sql))
+                                print(f"Successfully upserted: {table}")
+                            else:
+                                print(f"Skipped empty DataFrame for: {table}")
+                        except Exception as e:
+                            print(f"Error processing {table}: {e}")
 
                     # drop temp tables
                     conn.execute(text("drop table subregion_temp;"))

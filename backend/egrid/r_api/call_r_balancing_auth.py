@@ -173,7 +173,8 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
             except Exception: 
                 print('Error in BaResourceMix dataframe')
  
-            tables = ["ba_adjusted_values", "ba_emission_rate", "ba_fuel_type_emission_rate", "ba_fuel_type_generation", "ba_nonbaseload_values", "ba_resource_mix"]
+            tables = ["ba_adjusted_values", "ba_emission_rate", "ba_fuel_type_emission_rate", 
+                      "ba_fuel_type_generation", "ba_nonbaseload_values", "ba_resource_mix"]
 
             df_map = {
                 "ba_adjusted_values": baadjustedvalues_df,

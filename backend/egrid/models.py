@@ -11,9 +11,6 @@ class BalancingAuthority(models.Model):
 
     def __str__(self):
         return self.name
-    
-# class BaAnnualCombustion(models.Model):
-# 
 
 # Make bacode a FK
 class Plant(models.Model):
@@ -56,7 +53,7 @@ class BaAdjustedValues(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing ID
     bacode = models.ForeignKey(
         BalancingAuthority, 
-        on_delete=models.CASCADE, # Deletes BaAnnualCombustion records if the related BalancingAuthority is delet
+        on_delete=models.CASCADE, # Deletes BaAdjustedValues records if the related BalancingAuthority is delet
         db_column='bacode',
         to_field='bacode'
     )
@@ -131,7 +128,7 @@ class BaEmissionRate(models.Model):
     class Meta:
         db_table = 'ba_emission_rate'
         constraints = [
-            models.UniqueConstraint(fields=["bacode", "year"], name="ber_unique_bacode_year")
+            models.UniqueConstraint(fields=["bacode", "year"], name="ba_emission_rate_unique_bacode_year")
         ]
 
 class BaFuelTypeEmissionRate(models.Model):
@@ -431,6 +428,9 @@ class NercAdjustedValues(models.Model):
 
     class Meta:
         db_table = 'nerc_adjusted_values'
+        constraints = [
+            models.UniqueConstraint(fields=["nerc", "year"], name="nerc_adjusted_values_unique_nerc_year")
+        ]
 
 
 class NercEmissionRate(models.Model): 
@@ -472,6 +472,9 @@ class NercEmissionRate(models.Model):
 
     class Meta:
         db_table = 'nerc_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["nerc", "year"], name="nerc_emission_rate_unique_nerc_year")
+        ]
   
 
 class NercFuelTypeEmissionRate(models.Model):  
@@ -549,6 +552,9 @@ class NercFuelTypeEmissionRate(models.Model):
 
     class Meta:
         db_table = 'nerc_fuel_type_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["nerc", "year"], name="nerc_fuel_type_emission_rate_unique_nerc_year")
+        ]
 
 
 class NercFuelTypeGeneration(models.Model): 
@@ -584,6 +590,9 @@ class NercFuelTypeGeneration(models.Model):
 
     class Meta:
         db_table = 'nerc_fuel_type_generation'
+        constraints = [
+            models.UniqueConstraint(fields=["nerc", "year"], name="nerc_fuel_type_generation_unique_nerc_year")
+        ]
 
 
 class NercNonBaseloadValues(models.Model): 
@@ -631,6 +640,9 @@ class NercNonBaseloadValues(models.Model):
 
     class Meta:
         db_table = 'nerc_nonbaseload_values'
+        constraints = [
+            models.UniqueConstraint(fields=["nerc", "year"], name="nerc_nonbaseload_values_unique_nerc_year")
+        ]
 
 
 class NercResourceMix(models.Model): 
@@ -666,6 +678,9 @@ class NercResourceMix(models.Model):
 
     class Meta:
         db_table = 'nerc_resource_mix'
+        constraints = [
+            models.UniqueConstraint(fields=["nerc", "year"], name="nerc_resource_mix_unique_nerc_year")
+        ]
 
 
 class PlantDistributionSys(models.Model):
@@ -716,7 +731,7 @@ class PlantAdjustedValues(models.Model):
     class Meta:
         db_table = 'plant_adjusted_values'
         constraints = [
-            models.UniqueConstraint(fields=["orispl", "year"], name="plant_adjusted_values_unique_bacode_year")
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_adjusted_values_unique_orispl_year")
         ]
 
 
@@ -760,7 +775,7 @@ class PlantEmissionRate (models.Model):
     class Meta:
         db_table = 'plant_emission_rate'
         constraints = [
-            models.UniqueConstraint(fields=["orispl", "year"], name="plant_emission_rate_unique_bacode_year")
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_emission_rate_unique_orispl_year")
         ]
 
 
@@ -798,7 +813,7 @@ class PlantFuelTypeGeneration (models.Model):
     class Meta:
         db_table = 'plant_fuel_type_generation'
         constraints = [
-            models.UniqueConstraint(fields=["orispl", "year"], name="plant_fuel_type_gen_unique_bacode_year")
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_fuel_type_gen_unique_orispl_year")
         ]
 
 
@@ -836,7 +851,7 @@ class PlantResourceMix(models.Model):
     class Meta:
         db_table = 'plant_resource_mix'
         constraints = [
-            models.UniqueConstraint(fields=["orispl", "year"], name="plant_resource_mix_unique_bacode_year")
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_resource_mix_unique_orispl_year")
         ]
 
 
@@ -894,12 +909,12 @@ class PlantUnadjustedValues(models.Model):
     class Meta:
         db_table = 'plant_unadjusted_values'
         constraints = [
-            models.UniqueConstraint(fields=["orispl", "year"], name="plant_unadjusted_values_unique_bacode_year")
+            models.UniqueConstraint(fields=["orispl", "year"], name="plant_unadjusted_values_unique_orispl_year")
         ]
 
 
 class Sector(models.Model):
-    sector_id = models.AutoField(primary_key=True)  # do we want this auto generated / TG: Yes
+    sector_id = models.AutoField(primary_key=True)  
     sector = models.CharField(max_length=500, null=False, blank=False)
    
     def __str__(self):
@@ -944,6 +959,9 @@ class StateAdjustedValues(models.Model):
  
     class Meta:
         db_table = 'state_adjusted_values'
+        constraints = [
+            models.UniqueConstraint(fields=["fipsst", "year"], name="state_adjusted_values_unique_fipsst_year")
+        ]
 
 
 class Subregion(models.Model): 
@@ -997,6 +1015,9 @@ class StateEmissionRate(models.Model):
 
     class Meta:
         db_table = 'state_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["fipsst", "year"], name="state_emission_rate_unique_fipsst_year")
+        ]
 
 
 class StateFuelTypeEmissionRate(models.Model): 
@@ -1074,6 +1095,9 @@ class StateFuelTypeEmissionRate(models.Model):
 
     class Meta:
         db_table = 'state_fuel_type_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["fipsst", "year"], name="state_fuel_type_emission_rate_unique_fipsst_year")
+        ]
 
 
 class StateFuelTypeGeneration(models.Model): 
@@ -1109,6 +1133,9 @@ class StateFuelTypeGeneration(models.Model):
 
     class Meta:
         db_table = 'state_fuel_type_generation'
+        constraints = [
+            models.UniqueConstraint(fields=["fipsst", "year"], name="state_fuel_type_generation_unique_fipsst_year")
+        ]
 
 
 class StateNonBaseloadValues(models.Model): 
@@ -1156,6 +1183,9 @@ class StateNonBaseloadValues(models.Model):
 
     class Meta:
         db_table = 'state_nonbaseload_values'
+        constraints = [
+            models.UniqueConstraint(fields=["fipsst", "year"], name="state_nonbaseload_values_unique_fipsst_year")
+        ]
 
 class StateResourceMix(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -1190,6 +1220,9 @@ class StateResourceMix(models.Model):
 
     class Meta:
         db_table = 'state_resource_mix'
+        constraints = [
+            models.UniqueConstraint(fields=["fipsst", "year"], name="state_resource_mix_unique_fipsst_year")
+        ]
 
 class SubrgnAdjustedValues(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -1220,6 +1253,9 @@ class SubrgnAdjustedValues(models.Model):
 
     class Meta:
         db_table = 'subrgn_adjusted_values'
+        constraints = [
+            models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_adjusted_values_unique_subrgn_year")
+        ]
 
 class SubrgnEmissionRate(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -1259,6 +1295,9 @@ class SubrgnEmissionRate(models.Model):
 
     class Meta:
         db_table = 'subrgn_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_emission_rate_unique_subrgn_year")
+        ]
   
 class SubrgnFuelTypeEmissionRate(models.Model):  
     id = models.AutoField(primary_key=True)
@@ -1334,6 +1373,9 @@ class SubrgnFuelTypeEmissionRate(models.Model):
 
     class Meta:
         db_table = 'subrgn_fuel_type_emission_rate'
+        constraints = [
+            models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_fuel_type_emission_rate_unique_subrgn_year")
+        ]
 
 class SubrgnFuelTypeGeneration(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -1367,6 +1409,9 @@ class SubrgnFuelTypeGeneration(models.Model):
 
     class Meta:
         db_table = 'subrgn_fuel_type_generation'
+        constraints = [
+            models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_fuel_type_generation_unique_subrgn_year")
+        ]
 
 
 class SubrgnNonBaseloadValues(models.Model): 
@@ -1413,6 +1458,9 @@ class SubrgnNonBaseloadValues(models.Model):
 
     class Meta:
         db_table = 'subrgn_nonbaseload_values'
+        constraints = [
+            models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_nonbaseload_values_unique_subrgn_year")
+        ]
 
 class SubrgnResourceMix(models.Model): 
     id = models.AutoField(primary_key=True)
@@ -1446,6 +1494,9 @@ class SubrgnResourceMix(models.Model):
 
     class Meta:
         db_table = 'subrgn_resource_mix'
+        constraints = [
+            models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_resource_mix_unique_subrgn_year")
+        ]
 
 # Got to go back to this
 class Utility(models.Model):
