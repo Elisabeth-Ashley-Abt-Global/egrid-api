@@ -8,8 +8,7 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
  
 def populate_subregion_data(engine=None, api_url=None, year=None): 
-  
-    print('Populating subregion data...') 
+    print("Starting script to populate subregion data for year ", year)
 
     try:
         response = requests.get(f"{api_url}{year}/subregion")
@@ -97,11 +96,11 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
 
             # create tables 
             # Subregion
-            subregion_df = df[['subrgn', 'srname', 'srnamepcap']].copy() 
+            subregion_df = df[['subrgn', 'srname']].copy() 
 
             # SubrgnAdjustedValues
             try: 
-                subrgnadjustedvalues_df = df[['subrgn', 'srhtian', 'srhtioz', 'srhtiant', 
+                subrgnadjustedvalues_df = df[['subrgn', 'srnamepcap', 'srhtian', 'srhtioz', 'srhtiant', 
                                             'srhtiozt', 'srngenan', 'srngenoz',  
                                             'srnoxan', 'srnoxoz', 'srso2an', 'srco2an', 
                                             'srch4an', 'srn2oan', 'srco2eqa', 'srhgan', 'year']].copy()

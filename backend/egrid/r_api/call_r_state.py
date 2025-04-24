@@ -9,8 +9,7 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
  
 def populate_state_data(engine=None, api_url=None, year=None): 
-    print('Populating State Data')
-    logger.debug("*populate_state_data")
+    print("Starting script to populate state data for year ", year)
 
     try:
         response = requests.get(f"{api_url}{year}/state")
@@ -99,13 +98,13 @@ def populate_state_data(engine=None, api_url=None, year=None):
             # create tables 
             # State
             try:
-                state_df = df[['fipsst', 'pstatabb', 'stnamepcap']].copy() 
+                state_df = df[['fipsst', 'pstatabb']].copy() 
             except Exception:
                 print('Error in State dataframe')
 
             # StateAdjustedValues
             try: 
-                stateadjustedvalues_df = df[['fipsst', 'sthtian', 'sthtioz', 'sthtiant', 
+                stateadjustedvalues_df = df[['fipsst', 'stnamepcap', 'sthtian', 'sthtioz', 'sthtiant', 
                                             'sthtiozt', 'stngenan', 'stngenoz',
                                             'stnoxan', 'stnoxoz', 'stso2an', 'stco2an', 
                                             'stch4an', 'stn2oan', 'stco2eqa', 'sthgan', 'year']].copy()

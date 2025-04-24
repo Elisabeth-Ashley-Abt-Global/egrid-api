@@ -9,8 +9,7 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
  
 def populate_nerc_data(engine=None, api_url=None, year=None): 
-    print('populate_nerc_data')
-    logger.debug("*populate_nerc_data")
+    print("Starting script to populate nerc data for year ", year)
 
     try:
         response = requests.get(f"{api_url}{year}/nerc")
@@ -97,12 +96,12 @@ def populate_nerc_data(engine=None, api_url=None, year=None):
             # cast nerc to char
             df['nerc'] = df['nerc'].astype(str).str.strip()
 
-            nerc_df = df[['nerc', 'nercname', 'nrnamepcap']].copy() 
+            nerc_df = df[['nerc', 'nercname']].copy() 
 
             # NercAdjustedValues
             try: 
-                nercadjustedvalues_df = df[['nerc', 'nrhtian', 'nrhtioz', 'nrhtiant', 
-                                            'nrhtiozt', 'nrngenan', 'nrngenoz', 
+                nercadjustedvalues_df = df[['nerc', 'nrnamepcap', 'nrhtian', 'nrhtioz', 
+                                            'nrhtiant', 'nrhtiozt', 'nrngenan', 'nrngenoz', 
                                             'nrnoxan', 'nrnoxoz', 'nrso2an', 'nrco2an', 
                                             'nrch4an', 'nrn2oan', 'nrco2eqa', 'nrhgan', 'year']].copy()
                 if year >= 2023: 
@@ -217,12 +216,11 @@ def populate_nerc_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-                    conn.execute(text("""insert into nerc_region (nerc, nercname, nrnamepcap)
-                                        select nerc, nercname, nrnamepcap
+                    conn.execute(text("""insert into nerc_region (nerc, nercname)
+                                        select nerc, nercname
                                         from nerc_region_temp
                                         on conflict (nerc) do update 
-                                        set nercname = excluded.nercname,
-                                        nrnamepcap = excluded.nrnamepcap;"""))
+                                        set nercname = excluded.nercname;"""))
                     
                     for table in tables:
                         try:

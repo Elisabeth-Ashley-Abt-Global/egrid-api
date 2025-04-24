@@ -18,7 +18,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             plant_data = data.get('data', [])
             df = pd.DataFrame(plant_data)  
 
-            cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
+            cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode']
 
             # Define the new columns to type cast (2023+ data)
             new_cols = ['plngennb', 'plgenato', 'plgenaco', 'pltopr', 'plcopr', 'unco2e', 'bioco2e', 'chpco2e']
@@ -79,16 +79,15 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             # Plant
             plant_df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 
                             'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
-                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt']].copy()
+                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag']].copy()
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             
             # PlantAdjustedValues
-            #'plhgan'
             try: 
                 plantadjustedvalues_df = df[['year', 'orispl', 'plhtian', 'plhtioz',
                                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
-                                            'plnoxan', 'plnoxoz', 'plso2an',
-                                            'plco2an', 'plch4an', 'pln2oan', 'plco2eqa']].copy()
+                                            'plnoxan', 'plnoxoz', 'plso2an', 'plco2an', 
+                                            'plch4an', 'pln2oan', 'plco2eqa', 'plhgan']].copy()
                 if year >= 2023: 
                     plantadjustedvalues_df['plngennb'] = df['plngennb']
 
@@ -103,11 +102,11 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             #plhgra
             try: 
                 plantemissionrate_df = df[['year', 'orispl', 'plnoxrta', 'plnoxrto', 'plso2rta', 'plco2rta',
-                                        'plch4rta', 'pln2orta', 'plc2erta', 'plnoxra',
+                                        'plch4rta', 'pln2orta', 'plc2erta', 'plhgrta', 'plnoxra',
                                         'plnoxro', 'plso2ra', 'plco2ra', 'plch4ra',
-                                        'pln2ora', 'plc2era',  'plnoxcrt', 'plnoxcro',
+                                        'pln2ora', 'plc2era', 'plhgra', 'plnoxcrt', 'plnoxcro',
                                         'plso2crt', 'plco2crt', 'plch4crt', 'pln2ocrt',
-                                        'plc2ecrt']].copy()
+                                        'plc2ecrt','plhgcrt']].copy()
                 plantemissionrate_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
             except Exception: 
                 print('Error in PlantEmissionRate dataframe')
@@ -190,12 +189,12 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                         insert into plant (
                             orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
                             numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                            coalflag, seqplt
+                            coalflag
                         )
                         select
                             orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
                             numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                            coalflag, seqplt
+                            coalflag
                         from plant_temp
                         on conflict (orispl) do update
                         set
@@ -213,8 +212,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             oprcode = excluded.oprcode,
                             sector = excluded.sector,
                             pname = excluded.pname,
-                            coalflag = excluded.coalflag,
-                            seqplt = excluded.seqplt; 
+                            coalflag = excluded.coalflag;
                     """))
 
                     for table in tables:

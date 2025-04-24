@@ -1,26 +1,114 @@
 from django.db import models
 
+
+class State(models.Model):
+    fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
+    pstatabb = models.CharField(max_length=2, null=False, blank=False)
+   
+    class Meta:
+        db_table = 'state'
  
+
 class BalancingAuthority(models.Model): 
     bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
     baname = models.CharField(max_length=255)   
-    banamepcap = models.FloatField(null=True, blank=True)
   
     class Meta:
         db_table = "balancing_authority"
 
     def __str__(self):
         return self.name
+    
 
-# Make bacode a FK
+class Subregion(models.Model): 
+    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
+    srname = models.CharField(max_length=255, null=False, blank=False)
+     
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'subregion'
+
+
+class NercRegion(models.Model):
+    nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
+    nercname = models.CharField(max_length=500, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_region'
+
+
+# This needs to be fixed. The goal is to have fipsst and fipscnty as a composite key, since fipscnty may repeat across different states
+# class County(models.Model): 
+#     fipsst   = models.CharField(max_length=2, null=False, blank=False)
+#     fipscnty = models.CharField(max_length=500, null=True, blank=True)
+#     cntyname = models.CharField(max_length=500, null=True, blank=True)
+#     cnty_comp_key = models.CharField(max_length=5, null=True, blank=True, unique=True)
+
+#     def save(self, *args, **kwargs):
+#         # Automatically generate cnty_comp_key if it's not already set
+#         if not self.cnty_comp_key:
+#             self.cnty_comp_key = f"{self.fipsst}_{self.fipscnty}"
+#         super().save(*args, **kwargs)
+
+#     def __str__(self):
+#         return self.name
+    
+#     class Meta:
+#         db_table = 'county'
+
+
+class PlantDistributionSys(models.Model):
+    oprcode = models.IntegerField(null=True, blank=True, unique=True)
+    oprname = models.CharField(max_length=255, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant_distribution_sys'
+
+
+class PlantUtility(models.Model): 
+    utlsrvid = models.IntegerField(null=True, blank=True, unique=True)
+    utlsrvname = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant_utility'
+
+
 class Plant(models.Model):
-    seqplt   = models.IntegerField(null=True, blank=True) # seqplt
-    orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
-    pstatabb = models.CharField(max_length=1000, null=True, blank=True)
-    fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID 
+    # pstatabb = models.CharField(max_length=2, null=True, blank=True) # use state as lookup table
+    # fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    fipsst = models.ForeignKey(
+        State, 
+        to_field='fipsst', 
+        on_delete=models.CASCADE,  
+        db_column='fipsst'  
+    )
     pname    = models.CharField(max_length=1000, null=True, blank=True)
     oprcode  = models.IntegerField(null=True, blank=True)
-    utlsrvid = models.IntegerField(null=True, blank=True)
+    # oprcode = models.ForeignKey( 
+    #     PlantDistributionSys, 
+    #     to_field='oprcode', 
+    #     on_delete=models.CASCADE,
+    #     db_column='oprcode'
+    # )
+    #utlsrvid = models.IntegerField(null=True, blank=True)
+    utlsrvid = models.ForeignKey( 
+        PlantUtility, 
+        to_field='utlsrvid',
+        on_delete=models.CASCADE,
+        db_column='utlsrvid'
+    )
     sector   = models.CharField(max_length=1000, null=True, blank=True)
     # bacode   = models.CharField(max_length=1000, null=True, blank=True)
     bacode = models.ForeignKey(
@@ -28,9 +116,21 @@ class Plant(models.Model):
         to_field='bacode',
         on_delete=models.CASCADE,  
         db_column='bacode'          
-    )   
-    nerc     = models.CharField(max_length=1000, null=True, blank=True)
-    fipscnty = models.CharField(max_length=3, null=True, blank=True)
+    ) 
+    # nerc = models.CharField(max_length=1000, null=True, blank=True)
+    nerc = models.ForeignKey(
+        NercRegion, 
+        to_field='nerc',
+        on_delete=models.CASCADE,  
+        db_column='nerc' 
+    )
+    fipscnty = models.CharField(max_length=3, null=True, blank=True) # TG: this needs to be connected to lookup table County, but it has composite key with fippst
+    # cnty_comp_key = models.ForeignKey(
+    #     County, 
+    #     to_field='cnty_comp_key', 
+    #     on_delete=models.CASCADE, 
+    #     db_column='cnty_comp_key'
+    # )  # Reference county composite key
     lat      = models.FloatField(null=True, blank=True)
     lon      = models.FloatField(null=True, blank=True)
     numunt   = models.IntegerField(null=True, blank=True)
@@ -38,9 +138,14 @@ class Plant(models.Model):
     plprmfl  = models.CharField(max_length=1000, null=True, blank=True)
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
     coalflag = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn   = models.CharField(null=True, blank=True, max_length=4) 
+    # subrgn   = models.CharField(null=True, blank=True, max_length=4) 
+    subrgn = models.ForeignKey(
+        Subregion, 
+        to_field='subrgn',
+        on_delete=models.CASCADE,  
+        db_column='subrgn' 
+    )
     isorto   = models.CharField(null=True, blank=True, max_length=5)
-    namepcap = models.FloatField(null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -86,6 +191,7 @@ class BaAdjustedValues(models.Model):
     def __str__(self):
         return self.name
  
+
 class BaEmissionRate(models.Model):
     id     =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
@@ -130,6 +236,7 @@ class BaEmissionRate(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["bacode", "year"], name="ba_emission_rate_unique_bacode_year")
         ]
+
 
 class BaFuelTypeEmissionRate(models.Model):
     id       =  models.AutoField(primary_key=True) 
@@ -209,7 +316,8 @@ class BaFuelTypeEmissionRate(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["bacode", "year"], name="ba_fuel_type_emission_rate_unique_bacode_year")
         ]
- 
+
+
 class BaFuelTypeGeneration(models.Model):
     id =  models.AutoField(primary_key=True) 
     bacode = models.ForeignKey(
@@ -335,18 +443,8 @@ class BaResourceMix(models.Model):
             models.UniqueConstraint(fields=["bacode", "year"], name="ba_resource_mix_unique_bacode_year")
         ]
 
-
-class County(models.Model):  # TG: This needs to include fipsst as well since fipscnty can have duplicates across states
-    cntyname = models.CharField(max_length=500, null=False, blank=False)
-    fipscnty = models.CharField(max_length=500, null=False, blank=False)
-    fipsst   = models.CharField(max_length=2)
-
-    class Meta:
-        db_table = 'county'
  
-
 class Generator(models.Model):
-    seqgen = models.FloatField(null=True, blank=True) 
     genid = models.CharField(null=True, blank=True)  
     orispl = models.IntegerField(null=False, blank=False)  
  
@@ -355,7 +453,6 @@ class Generator(models.Model):
 
     class Meta:
         db_table = 'generator'
-
         constraints = [
             models.UniqueConstraint(fields=['genid', 'orispl'], name='unique_genid_orispl')
         ]
@@ -379,22 +476,9 @@ class Generation(models.Model):
 
     class Meta:
         db_table = 'generation'    
-
         constraints = [
             models.UniqueConstraint(fields=['genid', 'orispl', 'year'], name='unique_genid_orispl_year')
         ]
-    
-
-class NercRegion(models.Model):
-    nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
-    nercname = models.CharField(max_length=500, null=False, blank=False)
-    nrnamepcap = models.FloatField(null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'nerc_region'
 
 
 class NercAdjustedValues(models.Model): 
@@ -681,23 +765,6 @@ class NercResourceMix(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["nerc", "year"], name="nerc_resource_mix_unique_nerc_year")
         ]
-
-
-class PlantDistributionSys(models.Model):
-    oprcode = models.IntegerField(null=True, blank=True)
-    oprname = models.CharField(max_length=255, null=False, blank=False)
-    orispl = models.ForeignKey(
-                Plant,
-                on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
-                db_column='orispl',        
-                to_field='orispl',
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'plant_distribution_sys'
        
  
 class PlantAdjustedValues(models.Model): 
@@ -708,6 +775,7 @@ class PlantAdjustedValues(models.Model):
                 db_column='orispl',        
                 to_field='orispl',
             )
+    namepcap = models.FloatField(null=True, blank=True)
     plhtian  = models.FloatField(null=True, blank=True)
     plhtioz  = models.FloatField(null=True, blank=True)
     plhtiant = models.FloatField(null=True, blank=True)
@@ -923,14 +991,7 @@ class Sector(models.Model):
     class Meta:
         db_table = 'sector'
  
-class State(models.Model):
-    fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
-    pstatabb = models.CharField(max_length=2, null=False, blank=False)
-    stnamepcap = models.FloatField(null=True, blank=True)
-   
-    class Meta:
-        db_table = 'state'
- 
+
 class StateAdjustedValues(models.Model): 
     id     = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(
@@ -962,18 +1023,6 @@ class StateAdjustedValues(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["fipsst", "year"], name="state_adjusted_values_unique_fipsst_year")
         ]
-
-
-class Subregion(models.Model): 
-    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
-    srname = models.CharField(max_length=255, null=False, blank=False)
-    srnamepcap = models.FloatField(null=True, blank=True)
-     
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'subregion'
 
 
 class StateEmissionRate(models.Model):
@@ -1525,8 +1574,6 @@ class Unit(models.Model):
     capdflag = models.CharField(max_length=50, null=True, blank=True)
     prgcode  = models.CharField(max_length=4000, null=True, blank=True)
     botfirty = models.CharField(max_length=255, null=True, blank=True)
-    numgen   = models.IntegerField(null=True, blank=True)
-    sequnt   = models.IntegerField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
@@ -1547,6 +1594,7 @@ class UnitUnadjustedValues(models.Model):
         to_field='orispl'         
     ) 
     prmvr    = models.CharField(max_length=2, null=True, blank=True) 
+    numgen   = models.IntegerField(null=True, blank=True)
     untopst  = models.CharField(max_length=100, null=True, blank=True) 
     fuelu1   = models.CharField(max_length=6, null=True, blank=True)
     hrsop    = models.FloatField(null=True, blank=True) 
@@ -1564,7 +1612,7 @@ class UnitUnadjustedValues(models.Model):
     so2src   = models.CharField(max_length=200, null=True, blank=True)
     co2src   = models.CharField(max_length=200, null=True, blank=True)
     hgsrc    = models.CharField(max_length=200, null=True, blank=True)
-    so2ctldv = models.CharField(max_length=10, null=True, blank=True) 
+    so2ctldv = models.CharField(max_length=200, null=True, blank=True) 
     noxctldv = models.CharField(max_length=200, null=True, blank=True)
     hgctldv  = models.CharField(max_length=200, null=True, blank=True)
     untyronl = models.IntegerField(null=True, blank=True)
