@@ -80,13 +80,21 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             plantdistributionsys_df = df[['oprcode', 'oprname']].drop_duplicates().copy()
             plantdistributionsys_df['opr_id'] = plantdistributionsys_df.reset_index().index # create row count since some oprcodes are not unique to oprnames
          
+            # PlantUtility
+            plantutility_df = df[['utlsrvid', 'utlsrvnm']].drop_duplicates().copy()
+
+            # PlantCounty
+            plantcounty_df = df[['fipsst', 'fipscnty', 'cntyname']].drop_duplicates().copy()
+            plantcounty_df['cnty_id'] = plantcounty_df.reset_index().index # create row count since some fipscnty and fipsst are not unique to cntyname
+
             # Plant
             try: 
                 plant_df = df[['fipsst', 'orispl', 'utlsrvid', 'bacode', 'subrgn',
                                 'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
                                 'plfuelct', 'oprcode', 'oprname', 'sector', 'pname', 'coalflag', 
-                                'isorto']].copy()
+                                'isorto', 'fipscnty', 'cntyname']].copy()
                 plant_df = plant_df.merge(plantdistributionsys_df, how='left', on=['oprcode', 'oprname']).drop(columns=['oprcode','oprname']) # add opr_id to plant table
+                plant_df = plant_df.merge(plantcounty_df, how='left', on=['fipsst', 'fipscnty', 'cntyname']).drop(columns=['fipscnty', 'cntyname']) # add cnty_id to plant table
                 plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             except Exception as e: 
                 print('Error in Plant dataframe ', e)
@@ -186,6 +194,8 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             try:
                 # build temp tables, replace will replace the table if it already exists
                 plantdistributionsys_df.to_sql('plant_distribution_sys_temp', con=engine, if_exists='replace', index=False)
+                plantutility_df.to_sql('plant_utility_temp', con=engine, if_exists='replace', index=False)
+                plantcounty_df.to_sql('plant_county_temp', con=engine, if_exists='replace', index=False)
                 plant_df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
                 plantadjustedvalues_df.to_sql('plant_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 plantemissionrate_df.to_sql('plant_emission_rate_temp', con=engine, if_exists='replace', index=False)
@@ -205,15 +215,34 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             oprcode = excluded.oprcode, 
                             oprname = excluded.oprname;
                         """))
+                    
+                    conn.execute(text(""" 
+                        insert into plant_utility (utlsrvid, utlsrvnm)
+                        select utlsrvid, utlsrvnm 
+                        from plant_utility_temp  
+                        on conflict (utlsrvid) do update
+                        set utlsrvnm = excluded.utlsrvnm      
+                        """))
+                    
+                    conn.execute(text(""" 
+                        insert into plant_county (cnty_id, fipsst, fipscnty, cntyname)
+                        select cnty_id, fipsst, fipscnty, cntyname
+                        from plant_county_temp  
+                        on conflict (cnty_id) do update
+                        set 
+                            fipsst = excluded.fipsst,
+                            fipscnty = excluded.fipscnty,
+                            cntyname = excluded.cntyname               
+                        """))
     
                     conn.execute(text("""
                         insert into plant (
-                            orispl, fipsst, utlsrvid, bacode, subrgn, nerc, lat, lon,
+                            orispl, fipsst, utlsrvid, bacode, subrgn, nerc, cnty_id, lat, lon,
                             numunt, numgen, plprmfl, plfuelct, opr_id, sector, pname,
                             coalflag, isorto
                         )
                         select
-                            orispl, fipsst, utlsrvid, bacode, subrgn, nerc, lat, lon,
+                            orispl, fipsst, utlsrvid, bacode, subrgn, nerc, cnty_id, lat, lon,
                             numunt, numgen, plprmfl, plfuelct, opr_id, sector, pname,
                             coalflag, isorto
                         from plant_temp
@@ -224,6 +253,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             bacode = excluded.bacode,
                             subrgn = excluded.subrgn,
                             nerc = excluded.nerc,
+                            cnty_id = excluded.cnty_id,
                             lat = excluded.lat,
                             lon = excluded.lon,
                             numunt = excluded.numunt,
@@ -250,6 +280,9 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             print(f"Error processing {table}: {e}")
 
                     # drop temp tables
+                    conn.execute(text("drop table plant_distribution_sys_temp;"))
+                    conn.execute(text("drop table plant_utility_temp;"))
+                    conn.execute(text("drop table plant_county_temp;"))
                     conn.execute(text("drop table plant_temp;"))
                     conn.execute(text("drop table plant_adjusted_values_temp;")) 
                     conn.execute(text("drop table plant_emission_rate_temp;"))

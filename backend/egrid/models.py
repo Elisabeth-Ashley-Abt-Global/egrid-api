@@ -5,11 +5,12 @@ class BalancingAuthority(models.Model):
     bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
     baname = models.CharField(max_length=255)   
   
+    def __str__(self):
+        return self.name
+
     class Meta:
         db_table = "balancing_authority"
 
-    def __str__(self):
-        return self.name
     
 class State(models.Model):
     fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
@@ -55,6 +56,30 @@ class PlantDistributionSys(models.Model):
         db_table = 'plant_distribution_sys'
 
 
+class PlantUtility(models.Model): 
+    utlsrvid = models.IntegerField(primary_key=True)
+    utlsrvnm = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant_utility'
+
+
+class PlantCounty(models.Model):  
+    cnty_id  = models.IntegerField(primary_key=True) # assigned row number in call_r_plant since fipscnty may have duplicates
+    fipsst   = models.CharField(max_length=2, null=False, blank=False)
+    fipscnty = models.CharField(max_length=5, null=True, blank=True)
+    cntyname = models.CharField(max_length=500, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant_county'
+
+
 class Plant(models.Model):
     orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
     # pstatabb = models.CharField(max_length=1000, null=True, blank=True)
@@ -73,7 +98,13 @@ class Plant(models.Model):
         on_delete=models.CASCADE,
         db_column='opr_id'
     )
-    utlsrvid = models.IntegerField(null=True, blank=True)
+    # utlsrvid = models.IntegerField(null=True, blank=True)
+    utlsrvid = models.ForeignKey( 
+        PlantUtility,
+        to_field='utlsrvid', 
+        on_delete=models.CASCADE,
+        db_column='utlsrvid'
+    )
     sector   = models.CharField(max_length=1000, null=True, blank=True)
     # bacode   = models.CharField(max_length=1000, null=True, blank=True)
     bacode = models.ForeignKey(
@@ -89,7 +120,13 @@ class Plant(models.Model):
         on_delete=models.CASCADE,  
         db_column='nerc'          
     )
-    fipscnty = models.CharField(max_length=3, null=True, blank=True)
+    # fipscnty = models.CharField(max_length=3, null=True, blank=True)
+    cnty_id = models.ForeignKey(
+        PlantCounty,
+        to_field='cnty_id',
+        on_delete=models.CASCADE,
+        db_column='cnty_id'
+    )
     lat      = models.FloatField(null=True, blank=True)
     lon      = models.FloatField(null=True, blank=True)
     numunt   = models.IntegerField(null=True, blank=True)
@@ -400,17 +437,7 @@ class BaResourceMix(models.Model):
         ]
 
 
-class County(models.Model):  # TG: This needs to include fipsst as well since fipscnty can have duplicates across states
-    cntyname = models.CharField(max_length=500, null=False, blank=False)
-    fipscnty = models.CharField(max_length=500, null=False, blank=False)
-    fipsst   = models.CharField(max_length=2)
-
-    class Meta:
-        db_table = 'county'
- 
-
 class Generator(models.Model):
-    seqgen = models.FloatField(null=True, blank=True) 
     genid = models.CharField(null=True, blank=True)  
     orispl = models.IntegerField(null=False, blank=False)  
  
@@ -1516,17 +1543,6 @@ class SubrgnResourceMix(models.Model):
             models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_resource_mix_unique_subrgn_year")
         ]
 
-# Got to go back to this
-class Utility(models.Model):
-    utlsrvid = models.IntegerField(primary_key=True, unique=True)
-    utlsrvnm = models.CharField(max_length=500, null=False, blank=False)
-    
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'utility'
-
 
 # Tables for Unit
 # Table for the fields that do not change year to year
@@ -1544,7 +1560,6 @@ class Unit(models.Model):
     prgcode  = models.CharField(max_length=4000, null=True, blank=True)
     botfirty = models.CharField(max_length=255, null=True, blank=True)
     numgen   = models.IntegerField(null=True, blank=True)
-    sequnt   = models.IntegerField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"
