@@ -11,13 +11,29 @@ class BalancingAuthority(models.Model):
 
     def __str__(self):
         return self.name
+    
+class State(models.Model):
+    fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
+    pstatabb = models.CharField(max_length=2, null=False, blank=False)
+   
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'state'
 
 # Make bacode a FK
 class Plant(models.Model):
     seqplt   = models.IntegerField(null=True, blank=True) # seqplt
     orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
     pstatabb = models.CharField(max_length=1000, null=True, blank=True)
-    fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    #fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    fipsst = models.ForeignKey(
+        State, 
+        to_field='fipsst', 
+        on_delete=models.CASCADE,
+        db_column='fipsst'
+    )
     pname    = models.CharField(max_length=1000, null=True, blank=True)
     oprcode  = models.IntegerField(null=True, blank=True)
     utlsrvid = models.IntegerField(null=True, blank=True)
@@ -923,14 +939,7 @@ class Sector(models.Model):
     class Meta:
         db_table = 'sector'
  
-class State(models.Model):
-    fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
-    pstatabb = models.CharField(max_length=2, null=False, blank=False)
-    stnamepcap = models.FloatField(null=True, blank=True)
-   
-    class Meta:
-        db_table = 'state'
- 
+
 class StateAdjustedValues(models.Model): 
     id     = models.AutoField(primary_key=True)
     fipsst = models.ForeignKey(

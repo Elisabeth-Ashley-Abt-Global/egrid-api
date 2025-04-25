@@ -99,13 +99,13 @@ def populate_state_data(engine=None, api_url=None, year=None):
             # create tables 
             # State
             try:
-                state_df = df[['fipsst', 'pstatabb', 'stnamepcap']].copy() 
+                state_df = df[['fipsst', 'pstatabb']].copy() 
             except Exception:
                 print('Error in State dataframe')
 
             # StateAdjustedValues
             try: 
-                stateadjustedvalues_df = df[['fipsst', 'sthtian', 'sthtioz', 'sthtiant', 
+                stateadjustedvalues_df = df[['fipsst', 'sthtian', 'stnamepcap', 'sthtioz', 'sthtiant', 
                                             'sthtiozt', 'stngenan', 'stngenoz',
                                             'stnoxan', 'stnoxoz', 'stso2an', 'stco2an', 
                                             'stch4an', 'stn2oan', 'stco2eqa', 'sthgan', 'year']].copy()
@@ -227,12 +227,11 @@ def populate_state_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
                     
-                    conn.execute(text("""insert into state (fipsst, pstatabb, stnamepcap)
-                                        select fipsst, pstatabb, stnamepcap
+                    conn.execute(text("""insert into state (fipsst, pstatabb)
+                                        select fipsst, pstatabb
                                         from state_temp
                                         on conflict (fipsst) do update 
-                                        set pstatabb = excluded.pstatabb,
-                                        stnamepcap = excluded.stnamepcap;"""))
+                                        set pstatabb = excluded.pstatabb;"""))
                     
                     for table in tables:
                         try:

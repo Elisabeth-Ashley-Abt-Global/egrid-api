@@ -91,7 +91,7 @@ DATABASES = {
         'HOST': os.getenv('HOST'),
         'PORT': os.getenv('PORT'),
         'OPTIONS': {
-            'options': '-c search_path=public'
+            'options': '-c search_path=egrid-dev'
         }
     }
 }

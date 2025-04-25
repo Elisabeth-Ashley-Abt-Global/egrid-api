@@ -12,7 +12,7 @@ from urllib.parse import quote_plus
 from django.conf import settings
 # from egrid.logic.queries.plant_queries import create_or_update_plant
 import logging
-schema = 'public'
+schema = 'egrid-dev'
 options = quote_plus(f'-c search_path={schema}')
 
 logger = logging.getLogger('egrid')
