@@ -4,7 +4,6 @@ from django.db import models
 class BalancingAuthority(models.Model): 
     bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
     baname = models.CharField(max_length=255)   
-    banamepcap = models.FloatField(null=True, blank=True)
   
     class Meta:
         db_table = "balancing_authority"
