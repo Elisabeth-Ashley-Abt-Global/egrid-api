@@ -85,9 +85,8 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             
             # PlantAdjustedValues
             #'plhgan'
-            #'namepcap'
             try: 
-                plantadjustedvalues_df = df[['year', 'orispl', 'plhtian', 'plhtioz',
+                plantadjustedvalues_df = df[['year', 'orispl', 'namepcap', 'plhtian', 'plhtioz',
                                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
                                             'plnoxan', 'plnoxoz', 'plso2an',
                                             'plco2an', 'plch4an', 'pln2oan', 'plco2eqa']].copy()

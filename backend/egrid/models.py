@@ -33,6 +33,17 @@ class Subregion(models.Model):
         db_table = 'subregion'
 
 
+class NercRegion(models.Model):
+    nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
+    nercname = models.CharField(max_length=500, null=False, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'nerc_region'
+
+
 class Plant(models.Model):
     orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
     # pstatabb = models.CharField(max_length=1000, null=True, blank=True)
@@ -54,7 +65,13 @@ class Plant(models.Model):
         on_delete=models.CASCADE,  
         db_column='bacode'          
     )   
-    nerc     = models.CharField(max_length=1000, null=True, blank=True)
+    # nerc     = models.CharField(max_length=1000, null=True, blank=True)
+    nerc = models.ForeignKey(
+        NercRegion,
+        to_field='nerc',
+        on_delete=models.CASCADE,  
+        db_column='nerc'          
+    )
     fipscnty = models.CharField(max_length=3, null=True, blank=True)
     lat      = models.FloatField(null=True, blank=True)
     lon      = models.FloatField(null=True, blank=True)
@@ -413,18 +430,6 @@ class Generation(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['genid', 'orispl', 'year'], name='unique_genid_orispl_year')
         ]
-    
-
-class NercRegion(models.Model):
-    nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
-    nercname = models.CharField(max_length=500, null=False, blank=False)
-    nrnamepcap = models.FloatField(null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'nerc_region'
 
 
 class NercAdjustedValues(models.Model): 
