@@ -22,12 +22,21 @@ class State(models.Model):
     class Meta:
         db_table = 'state'
 
-# Make bacode a FK
+class Subregion(models.Model): 
+    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
+    srname = models.CharField(max_length=255, null=False, blank=False)
+     
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'subregion'
+
+
 class Plant(models.Model):
-    seqplt   = models.IntegerField(null=True, blank=True) # seqplt
     orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
-    pstatabb = models.CharField(max_length=1000, null=True, blank=True)
-    #fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    # pstatabb = models.CharField(max_length=1000, null=True, blank=True)
+    # fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
     fipsst = models.ForeignKey(
         State, 
         to_field='fipsst', 
@@ -54,9 +63,14 @@ class Plant(models.Model):
     plprmfl  = models.CharField(max_length=1000, null=True, blank=True)
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
     coalflag = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn   = models.CharField(null=True, blank=True, max_length=4) 
+    #subrgn   = models.CharField(null=False, blank=False, max_length=4) 
+    subrgn = models.ForeignKey( 
+        Subregion, 
+        to_field='subrgn', 
+        on_delete=models.CASCADE, 
+        db_column='subrgn'
+    )
     isorto   = models.CharField(null=True, blank=True, max_length=5)
-    namepcap = models.FloatField(null=True, blank=True)
     
     def __str__(self):
         return self.name
@@ -724,6 +738,7 @@ class PlantAdjustedValues(models.Model):
                 db_column='orispl',        
                 to_field='orispl',
             )
+    namepcap = models.FloatField(null=True, blank=True)
     plhtian  = models.FloatField(null=True, blank=True)
     plhtioz  = models.FloatField(null=True, blank=True)
     plhtiant = models.FloatField(null=True, blank=True)
@@ -971,18 +986,6 @@ class StateAdjustedValues(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["fipsst", "year"], name="state_adjusted_values_unique_fipsst_year")
         ]
-
-
-class Subregion(models.Model): 
-    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
-    srname = models.CharField(max_length=255, null=False, blank=False)
-    srnamepcap = models.FloatField(null=True, blank=True)
-     
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'subregion'
 
 
 class StateEmissionRate(models.Model):
@@ -1240,6 +1243,7 @@ class SubrgnAdjustedValues(models.Model):
                 on_delete=models.CASCADE,  # Deletes SubrgnAdjustedValues records if the related Plant is deleted
                 db_column='subrgn'          
             ) 
+    srnamepcap = models.FloatField(null=True, blank=True)
     srhtian   = models.FloatField(null=True, blank=True)
     srhtioz   = models.FloatField(null=True, blank=True)
     srhtiant  = models.FloatField(null=True, blank=True)

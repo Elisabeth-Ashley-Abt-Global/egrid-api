@@ -77,13 +77,15 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             year = df['year'].unique()[0] 
          
             # Plant
-            plant_df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 
+            plant_df = df[['fipsst', 'orispl', 'utlsrvid', 'bacode', 'subrgn',
                             'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
-                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt']].copy()
+                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 
+                            'isorto']].copy()
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             
             # PlantAdjustedValues
             #'plhgan'
+            #'namepcap'
             try: 
                 plantadjustedvalues_df = df[['year', 'orispl', 'plhtian', 'plhtioz',
                                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
@@ -188,21 +190,21 @@ def populate_plant_data(engine=None, api_url=None, year=None):
     
                     conn.execute(text("""
                         insert into plant (
-                            orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
+                            orispl, fipsst, utlsrvid, bacode, subrgn, nerc, lat, lon,
                             numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                            coalflag, seqplt
+                            coalflag, isorto
                         )
                         select
-                            orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
+                            orispl, fipsst, utlsrvid, bacode, subrgn, nerc, lat, lon,
                             numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                            coalflag, seqplt
+                            coalflag, isorto
                         from plant_temp
                         on conflict (orispl) do update
                         set
-                            pstatabb = excluded.pstatabb,
                             fipsst = excluded.fipsst,
                             utlsrvid = excluded.utlsrvid,
                             bacode = excluded.bacode,
+                            subrgn = excluded.subrgn,
                             nerc = excluded.nerc,
                             lat = excluded.lat,
                             lon = excluded.lon,
@@ -213,8 +215,8 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             oprcode = excluded.oprcode,
                             sector = excluded.sector,
                             pname = excluded.pname,
-                            coalflag = excluded.coalflag,
-                            seqplt = excluded.seqplt; 
+                            coalflag = excluded.coalflag, 
+                            isorto = excluded.isorto;
                     """))
 
                     for table in tables:
