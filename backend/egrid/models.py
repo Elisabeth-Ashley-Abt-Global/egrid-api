@@ -43,6 +43,18 @@ class NercRegion(models.Model):
         db_table = 'nerc_region'
 
 
+class PlantDistributionSys(models.Model):
+    opr_id = models.IntegerField(primary_key=True)
+    oprcode = models.IntegerField(null=False, blank=False)
+    oprname = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant_distribution_sys'
+
+
 class Plant(models.Model):
     orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
     # pstatabb = models.CharField(max_length=1000, null=True, blank=True)
@@ -54,7 +66,13 @@ class Plant(models.Model):
         db_column='fipsst'
     )
     pname    = models.CharField(max_length=1000, null=True, blank=True)
-    oprcode  = models.IntegerField(null=True, blank=True)
+    #oprcode  = models.IntegerField(null=True, blank=True)
+    opr_id = models.ForeignKey( 
+        PlantDistributionSys, 
+        to_field='opr_id',
+        on_delete=models.CASCADE,
+        db_column='opr_id'
+    )
     utlsrvid = models.IntegerField(null=True, blank=True)
     sector   = models.CharField(max_length=1000, null=True, blank=True)
     # bacode   = models.CharField(max_length=1000, null=True, blank=True)
@@ -715,23 +733,6 @@ class NercResourceMix(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["nerc", "year"], name="nerc_resource_mix_unique_nerc_year")
         ]
-
-
-class PlantDistributionSys(models.Model):
-    oprcode = models.IntegerField(null=True, blank=True)
-    oprname = models.CharField(max_length=255, null=False, blank=False)
-    orispl = models.ForeignKey(
-                Plant,
-                on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
-                db_column='orispl',        
-                to_field='orispl',
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'plant_distribution_sys'
        
  
 class PlantAdjustedValues(models.Model): 

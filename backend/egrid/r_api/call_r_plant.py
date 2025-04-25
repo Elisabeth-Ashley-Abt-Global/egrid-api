@@ -18,7 +18,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             plant_data = data.get('data', [])
             df = pd.DataFrame(plant_data)  
 
-            cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode', 'seqplt']
+            cast_to_int = ['year', 'orispl', 'utlsrvid', 'numunt', 'numgen', 'oprcode']
 
             # Define the new columns to type cast (2023+ data)
             new_cols = ['plngennb', 'plgenato', 'plgenaco', 'pltopr', 'plcopr', 'unco2e', 'bioco2e', 'chpco2e']
@@ -75,14 +75,22 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                     print('Error converting column to float:', col, e) 
 
             year = df['year'].unique()[0] 
+
+            # PlantDistributionSys
+            plantdistributionsys_df = df[['oprcode', 'oprname']].drop_duplicates().copy()
+            plantdistributionsys_df['opr_id'] = plantdistributionsys_df.reset_index().index # create row count since some oprcodes are not unique to oprnames
          
             # Plant
-            plant_df = df[['fipsst', 'orispl', 'utlsrvid', 'bacode', 'subrgn',
-                            'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
-                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 
-                            'isorto']].copy()
-            plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
-            
+            try: 
+                plant_df = df[['fipsst', 'orispl', 'utlsrvid', 'bacode', 'subrgn',
+                                'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
+                                'plfuelct', 'oprcode', 'oprname', 'sector', 'pname', 'coalflag', 
+                                'isorto']].copy()
+                plant_df = plant_df.merge(plantdistributionsys_df, how='left', on=['oprcode', 'oprname']).drop(columns=['oprcode','oprname']) # add opr_id to plant table
+                plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
+            except Exception as e: 
+                print('Error in Plant dataframe ', e)
+
             # PlantAdjustedValues
             #'plhgan'
             try: 
@@ -177,6 +185,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
             try:
                 # build temp tables, replace will replace the table if it already exists
+                plantdistributionsys_df.to_sql('plant_distribution_sys_temp', con=engine, if_exists='replace', index=False)
                 plant_df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
                 plantadjustedvalues_df.to_sql('plant_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 plantemissionrate_df.to_sql('plant_emission_rate_temp', con=engine, if_exists='replace', index=False)
@@ -186,16 +195,26 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
+
+                    conn.execute(text(""" 
+                        insert into plant_distribution_sys (oprcode, oprname, opr_id)
+                        select oprcode, oprname, opr_id
+                        from plant_distribution_sys_temp
+                        on conflict (opr_id) do update
+                        set
+                            oprcode = excluded.oprcode, 
+                            oprname = excluded.oprname;
+                        """))
     
                     conn.execute(text("""
                         insert into plant (
                             orispl, fipsst, utlsrvid, bacode, subrgn, nerc, lat, lon,
-                            numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
+                            numunt, numgen, plprmfl, plfuelct, opr_id, sector, pname,
                             coalflag, isorto
                         )
                         select
                             orispl, fipsst, utlsrvid, bacode, subrgn, nerc, lat, lon,
-                            numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
+                            numunt, numgen, plprmfl, plfuelct, opr_id, sector, pname,
                             coalflag, isorto
                         from plant_temp
                         on conflict (orispl) do update
@@ -211,7 +230,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             numgen = excluded.numgen,
                             plprmfl = excluded.plprmfl,
                             plfuelct = excluded.plfuelct,
-                            oprcode = excluded.oprcode,
+                            opr_id = excluded.opr_id,
                             sector = excluded.sector,
                             pname = excluded.pname,
                             coalflag = excluded.coalflag, 
