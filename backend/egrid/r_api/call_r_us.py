@@ -8,8 +8,8 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
   
 def populate_us_data(engine=None, api_url=None, year=None):
-    print("*populate_us_data")
- 
+    print("Starting script to populate US data for year ", year)
+
     try:
         response = requests.get(f"{api_url}{year}/us")
         data = response.json() 

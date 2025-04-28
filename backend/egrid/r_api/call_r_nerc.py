@@ -5,12 +5,10 @@ import pandas as pd
 from sqlalchemy import text 
 from .utils import record_insert_update
 
-
 logger = logging.getLogger('egrid')
  
 def populate_nerc_data(engine=None, api_url=None, year=None): 
-    print('populate_nerc_data')
-    logger.debug("*populate_nerc_data")
+    print("Starting script to populate nerc data for year ", year)
 
     try:
         response = requests.get(f"{api_url}{year}/nerc")

@@ -8,9 +8,8 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
  
 def populate_subregion_data(engine=None, api_url=None, year=None): 
-  
-    print('Populating subregion data...') 
-
+    print("Starting script to populate subregion data for year ", year)
+ 
     try:
         response = requests.get(f"{api_url}{year}/subregion")
         data = response.json() 

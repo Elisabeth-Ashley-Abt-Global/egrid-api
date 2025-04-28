@@ -9,8 +9,7 @@ from .utils import record_insert_update
 logger = logging.getLogger('egrid')
  
 def populate_state_data(engine=None, api_url=None, year=None): 
-    print('Populating State Data')
-    logger.debug("*populate_state_data")
+    print("Starting script to populate state data for year ", year)
 
     try:
         response = requests.get(f"{api_url}{year}/state")
