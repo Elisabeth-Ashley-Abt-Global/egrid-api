@@ -3,6 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
+from .utils import record_insert_update
 
 logger = logging.getLogger('egrid')
 
@@ -98,48 +99,12 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                             numgen = excluded.numgen;
                     """))  
 
-                    conn.execute(text(""" 
-                        insert into unit_unadjusted_values (
-                            orispl, unitid, prmvr,
-                            hrsop, htian, htioz, noxan, noxoz, 
-                            so2an, co2an, hgan, htiansrc, 
-                            htiozsrc, noxansrc, noxozsrc, so2src, 
-                            co2src, hgsrc, so2ctldv, noxctldv, 
-                            hgctldv, untyronl, stackht
-                        ) 
-                        select  
-                            orispl, unitid, prmvr,  
-                            hrsop, htian, htioz, noxan, noxoz, 
-                            so2an, co2an, hgan, htiansrc, 
-                            htiozsrc, noxansrc, noxozsrc, so2src, 
-                            co2src, hgsrc, so2ctldv, noxctldv, 
-                            hgctldv, untyronl, stackht
-                        from unit_unadjusted_values_temp   
-                        on conflict (orispl, unitid, prmvr, year) do update
-                        set 
-                            untopst = excluded.untopst, 
-                            fuelu1 = excluded.fuelu1,
-                            hrsop = excluded.hrsop, 
-                            htian = excluded.htian, 
-                            htioz = excluded.htioz, 
-                            noxan = excluded.noxan, 
-                            noxoz = excluded.noxoz, 
-                            so2an = excluded.so2an, 
-                            co2an = excluded.co2an, 
-                            hgan = excluded.hgan, 
-                            htiansrc = excluded.htiansrc, 
-                            htiozsrc = excluded.htiozsrc, 
-                            noxansrc = excluded.noxansrc, 
-                            noxozsrc = excluded.noxozsrc, 
-                            so2src = excluded.so2src, 
-                            co2src = excluded.co2src, 
-                            hgsrc = excluded.hgsrc, 
-                            so2ctldv = excluded.so2ctldv, 
-                            noxctldv = excluded.noxctldv, 
-                            hgctldv = excluded.hgctldv, 
-                            untyronl = excluded.untyronl, 
-                            stackht = excluded.stackht           
-                    """)) 
+                    try: 
+                        sql = record_insert_update("unit_unadjusted_values", unitunadjustedvalues_df, unique_field=['orispl', 'unitid', 'prmvr'])
+                        conn.execute(text(sql))
+                        print("Successfully upserted: unit_unadjusted_values")
+                    except Exception as e: 
+                        print(f"Error processing unit_unadjusted_values: {e}")
 
                     # drop temp tables
                     conn.execute(text("drop table unit_temp;"))

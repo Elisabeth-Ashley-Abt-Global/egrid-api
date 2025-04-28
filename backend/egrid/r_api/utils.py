@@ -64,7 +64,16 @@ def record_insert_update(table, df, unique_field):
 
     # Composite conflict key: unique field + year
     conflict_columns = [unique_field, "year"]
-    conflict_clause = ", ".join(conflict_columns)
+    # if unique_field is a list, unlist it 
+    conflict_columns_new = []
+    for element in conflict_columns:
+        if type(element) is list:
+            # Check if type is list than iterate through the sublist
+            for item in element:
+                conflict_columns_new.append(item)
+        else:
+            conflict_columns_new.append(element)
+    conflict_clause = ", ".join(conflict_columns_new)
     col_list = ", ".join(columns)
 
     # Exclude conflict keys from update columns

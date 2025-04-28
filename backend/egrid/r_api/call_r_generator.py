@@ -3,6 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
+from .utils import record_insert_update
 
 logger = logging.getLogger('egrid')
    
@@ -55,30 +56,38 @@ def populate_generator_data(engine=None, api_url=None, year=None):
                             genid = excluded.genid;
                     """))  
 
-                    conn.execute(text("""
-                        insert into generation (
-                            genid, orispl, year, numblr,
-                            genstat, prmvr, fuelg1, namepcap ,cfact,
-                            genntan, genntoz, genersrc, genyronl, genyrret
-                        ) select genid, orispl, year, numblr,
-                            genstat, prmvr, fuelg1, namepcap ,cfact,
-                            genntan, genntoz, genersrc, genyronl, genyrret
-                        from generator_temp
-                        on conflict (orispl, genid, year) do update
-                        set
-                            numblr = excluded.numblr,
-                            genstat = excluded.genstat, 
-                            prmvr = excluded.prmvr,
-                            fuelg1 = excluded.fuelg1,
-                            namepcap = excluded.namepcap,
-                            cfact = excluded.cfact, 
-                            genntan = excluded.genntan,
-                            genntoz = excluded.genntoz, 
-                            genersrc = excluded.genersrc,
-                            genyronl = excluded.genyronl,
-                            genyrret = excluded.genyrret;
-                    """))
+                    # conn.execute(text("""
+                    #     insert into generation (
+                    #         genid, orispl, year, numblr,
+                    #         genstat, prmvr, fuelg1, namepcap ,cfact,
+                    #         genntan, genntoz, genersrc, genyronl, genyrret
+                    #     ) select genid, orispl, year, numblr,
+                    #         genstat, prmvr, fuelg1, namepcap ,cfact,
+                    #         genntan, genntoz, genersrc, genyronl, genyrret
+                    #     from generator_temp
+                    #     on conflict (orispl, genid, year) do update
+                    #     set
+                    #         numblr = excluded.numblr,
+                    #         genstat = excluded.genstat, 
+                    #         prmvr = excluded.prmvr,
+                    #         fuelg1 = excluded.fuelg1,
+                    #         namepcap = excluded.namepcap,
+                    #         cfact = excluded.cfact, 
+                    #         genntan = excluded.genntan,
+                    #         genntoz = excluded.genntoz, 
+                    #         genersrc = excluded.genersrc,
+                    #         genyronl = excluded.genyronl,
+                    #         genyrret = excluded.genyrret;
+                    # """))
   
+                    try: 
+                        sql = record_insert_update("generation", generation_df, unique_field=['orispl', 'genid'])
+                        conn.execute(text(sql))
+                        print("Successfully upserted: generation")
+                    except Exception as e: 
+                        print(f"Error processing generation: {e}")
+
+
                     # conn.execute(text("truncate table generator_temp;"))
                     conn.execute(text("drop table generator_temp;"))
                     conn.execute(text("drop table generation_temp;"))
