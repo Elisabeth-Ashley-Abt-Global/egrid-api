@@ -1597,7 +1597,7 @@ class UnitUnadjustedValues(models.Model):
     so2src   = models.CharField(max_length=200, null=True, blank=True)
     co2src   = models.CharField(max_length=200, null=True, blank=True)
     hgsrc    = models.CharField(max_length=200, null=True, blank=True)
-    so2ctldv = models.CharField(max_length=10, null=True, blank=True) 
+    so2ctldv = models.CharField(max_length=200, null=True, blank=True) 
     noxctldv = models.CharField(max_length=200, null=True, blank=True)
     hgctldv  = models.CharField(max_length=200, null=True, blank=True)
     untyronl = models.IntegerField(null=True, blank=True)

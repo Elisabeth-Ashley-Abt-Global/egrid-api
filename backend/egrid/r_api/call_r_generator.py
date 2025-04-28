@@ -3,14 +3,12 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import record_insert_update 
 
 logger = logging.getLogger('egrid')
    
 def populate_generator_data(engine=None, api_url=None, year=None):
-    print('populate_generator_data')
-    logger.debug("*populate_generator_data")
-     
+    print("Starting script to populate generator data for year ", year)
+
     try:
         response = requests.get(f"{api_url}{year}/generator")
         data = response.json()  
@@ -20,10 +18,10 @@ def populate_generator_data(engine=None, api_url=None, year=None):
             df = pd.DataFrame(gen_data)
 
             year = df['year'].unique()[0] 
-            print('year ', year)
+
             # Cast columns to appropriate types
-            cast_to_float = ['seqgen', 'namepcap', 'cfact', 'genntan', 'genntoz']
-            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year', 'seqgen']
+            cast_to_float = ['namepcap', 'cfact', 'genntan', 'genntoz']
+            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year']
  
             for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
@@ -32,19 +30,13 @@ def populate_generator_data(engine=None, api_url=None, year=None):
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
  
             # print('df', df.head()) # for debugging
-            gen_df = df[['seqgen', 'genid', 'orispl']] 
+            gen_df = df[['genid', 'orispl']] 
             gen_df = df.copy()
             gen_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
 
             generation_df = df[['genid','orispl','year','numblr',
                                 'genstat', 'prmvr', 'fuelg1', 'namepcap' ,'cfact',
                                 'genntan', 'genntoz', 'genersrc', 'genyronl', 'genyrret']]
-            
-            tables = ["generation"]
-            
-            df_map = {
-                "generation": generation_df,
-            }
 
             try: 
                 gen_df.to_sql('generator_temp', con=engine, if_exists='replace', index=False) 
@@ -53,60 +45,39 @@ def populate_generator_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
 
-                    gen_cnt = conn.execute(text("select count(*) from generator;")).scalar()
-                    generation_cnt = conn.execute(
-                        text("select count(*) from generation where year = :year"),
-                        {"year": year}
-                    ).scalar() 
+                    conn.execute(text("""
+                        insert into generator (genid, orispl) 
+                        select genid, orispl 
+                        from generator_temp
+                        on conflict (genid, orispl) do update
+                        set
+                            orispl = excluded.orispl, 
+                            genid = excluded.genid;
+                    """))  
 
-                    if gen_cnt == 0:   
-                        conn.execute(text("""
-                            insert into generator (
-                                seqgen, genid, orispl
-                            ) select seqgen, genid, orispl from generator_temp;
-                        """))  
-                    else:
-                        conn.execute(text("""
-                            update generator 
-                            set seqgen = gt.seqgen, 
-                            genid = gt.genid
-                            from generator_temp gt 
-                            where generator.orispl = gt.orispl 
-                                and generator.genid = gt.genid;
-                        """))
-
-                    if generation_cnt == 0:
-                        conn.execute(text("""
-                            insert into generation (
-                              genid, orispl, year, numblr,
-                                genstat, prmvr, fuelg1, namepcap ,cfact,
-                                genntan, genntoz, genersrc, genyronl, genyrret
-                            ) select genid, orispl, year, numblr,
-                                genstat, prmvr, fuelg1, namepcap ,cfact,
-                                genntan, genntoz, genersrc, genyronl, genyrret
-                            from generator_temp;
-                        """))
-                    else:   
-                        conn.execute(text("""  
-                            update generation 
-                            set genid = gt.genid,
-                            year = gt.year, 
-                            numblr = generator_temp.numblr,
-                            genstat = gt.genstat, 
-                            prmvr = gt.prmvr,
-                            fuelg1 = gt.fuelg1,
-                            namepcap = gt.namepcap,
-                            cfact = gt.cfact, 
-                            genntan = gt.genntan,
-                            genntoz = gt.genntoz, 
-                            genersrc = gt.genersrc,
-                            genyronl = gt.genyronl,
-                            genyrret = gt.genyrret
-                            from generator_temp gt
-                            where generation.orispl = gt.orispl 
-                                and generation.genid = gt.genid
-                                and generation.year = gt.year;
-                        """))
+                    conn.execute(text("""
+                        insert into generation (
+                            genid, orispl, year, numblr,
+                            genstat, prmvr, fuelg1, namepcap ,cfact,
+                            genntan, genntoz, genersrc, genyronl, genyrret
+                        ) select genid, orispl, year, numblr,
+                            genstat, prmvr, fuelg1, namepcap ,cfact,
+                            genntan, genntoz, genersrc, genyronl, genyrret
+                        from generator_temp
+                        on conflict (orispl, genid, year) do update
+                        set
+                            numblr = excluded.numblr,
+                            genstat = excluded.genstat, 
+                            prmvr = excluded.prmvr,
+                            fuelg1 = excluded.fuelg1,
+                            namepcap = excluded.namepcap,
+                            cfact = excluded.cfact, 
+                            genntan = excluded.genntan,
+                            genntoz = excluded.genntoz, 
+                            genersrc = excluded.genersrc,
+                            genyronl = excluded.genyronl,
+                            genyrret = excluded.genyrret;
+                    """))
   
                     # conn.execute(text("truncate table generator_temp;"))
                     conn.execute(text("drop table generator_temp;"))
@@ -114,13 +85,15 @@ def populate_generator_data(engine=None, api_url=None, year=None):
  
                     trans.commit() 
  
-                print('success')
-                return {"success": True, "message": "Data successfully inserted into the Generator table."}
+                print('Success populating generator data.')  
+                  
             except Exception as e:
-                print('error', e)
-                return {"error": str(e)}
+                print('Error populating generator data.', e)
+                return {"error": str(e)}  
+
+            return {"success": True, "message": "Data successfully inserted into the Generator table."}
         else:
-            print('error')
-            return {"error": "R API returned an error: {}".format(data.get('error'))} 
+            return {"error": f"Failed to connect to R API with status code {response.status_code}"}
+    
     except Exception as e:
         return {"error": str(e)}
