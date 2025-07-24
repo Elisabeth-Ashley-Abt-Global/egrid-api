@@ -48,5 +48,23 @@ Load data from the Plumber API by running:
 python manage.py populate_egrid_db
 
 ```
+## Optional Arguments for Data Population
 
- 
+The `populate_egrid_db` management command supports optional arguments for selective loading:
+
+- `--table_name`: Specify a single table to populate  
+  Available options: `balancing_authority`, `plant`, `nerc`, `generator`, `state`, `subregion`, `unit`
+- `--year`: Specify a year if the dataset supports it
+
+### Example
+
+Populate only the `plant` table:
+
+```bash
+python manage.py populate_egrid_db --table_name plant
+```
+
+Populate only all tables for 2022:
+```bash
+python manage.py populate_egrid_db --year 2022
+```
