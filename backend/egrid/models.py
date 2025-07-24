@@ -41,6 +41,7 @@ class Plant(models.Model):
     subrgn   = models.CharField(null=True, blank=True, max_length=4) 
     isorto   = models.CharField(null=True, blank=True, max_length=5)
     namepcap = models.FloatField(null=True, blank=True)
+    capfac = models.FloatField(null=True, blank=True)
     
     def __str__(self):
         return self.name
