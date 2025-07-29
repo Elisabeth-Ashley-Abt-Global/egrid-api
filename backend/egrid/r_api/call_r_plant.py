@@ -80,7 +80,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             plant_df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 
                             'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
                             'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt', 
-                            'cntyname', 'fipscnty']].copy()
+                            'cntyname', 'namepcap', 'fipscnty']].copy()
             
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             
