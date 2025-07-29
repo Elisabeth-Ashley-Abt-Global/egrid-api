@@ -41,8 +41,8 @@ class Plant(models.Model):
     subrgn   = models.CharField(null=True, blank=True, max_length=4) 
     isorto   = models.CharField(null=True, blank=True, max_length=5)
     namepcap = models.FloatField(null=True, blank=True)
-    capfac = models.FloatField(null=True, blank=True)
-    
+    cntyname = models.CharField(max_length=4000, null=True, blank=True)
+
     def __str__(self):
         return self.name
 
@@ -335,16 +335,6 @@ class BaResourceMix(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["bacode", "year"], name="ba_resource_mix_unique_bacode_year")
         ]
-
-
-class County(models.Model):  # TG: This needs to include fipsst as well since fipscnty can have duplicates across states
-    cntyname = models.CharField(max_length=500, null=False, blank=False)
-    fipscnty = models.CharField(max_length=500, null=False, blank=False)
-    fipsst   = models.CharField(max_length=2)
-
-    class Meta:
-        db_table = 'county'
- 
 
 class Generator(models.Model):
     seqgen = models.FloatField(null=True, blank=True) 
@@ -724,6 +714,7 @@ class PlantAdjustedValues(models.Model):
     pln2oan  = models.FloatField(null=True, blank=True)
     plco2eqa = models.FloatField(null=True, blank=True)
     plhgan   = models.CharField(max_length=2, null=True, blank=True)
+    capfac = models.FloatField(null=True, blank=True)
     year     = models.IntegerField(null=True, blank=True)
 
     def __str__(self):

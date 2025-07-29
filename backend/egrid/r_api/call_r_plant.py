@@ -49,7 +49,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                             'unhtioz', 'unhtit', 'unhtiozt', 'bionox', 'bionoxoz',
                             'bioso2', 'bioco2', 'bioch4', 'bion2o', 'bioco2e',
                             'chpchti', 'chpchtioz', 'chpnox', 'chpnoxoz', 'chpso2',
-                            'chpco2', 'chpch4', 'chpn2o', 'chpco2e']
+                            'chpco2', 'chpch4', 'chpn2o', 'chpco2e', 'capfac', 'namepcap']
             
             # Cast columns to appropriate types, check if in new columns
             for col in cast_to_int:
@@ -79,7 +79,9 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             # Plant
             plant_df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 
                             'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
-                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt']].copy()
+                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt', 
+                            'cntyname', 'fipscnty']].copy()
+            
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             
             # PlantAdjustedValues
@@ -88,7 +90,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                 plantadjustedvalues_df = df[['year', 'orispl', 'plhtian', 'plhtioz',
                                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
                                             'plnoxan', 'plnoxoz', 'plso2an',
-                                            'plco2an', 'plch4an', 'pln2oan', 'plco2eqa']].copy()
+                                            'plco2an', 'plch4an', 'pln2oan', 'plco2eqa', 'capfac']].copy()
                 if year >= 2023: 
                     plantadjustedvalues_df['plngennb'] = df['plngennb']
 
@@ -162,7 +164,8 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                 plantunadjustedvalues_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True)
             except Exception: 
                 print('Error PlantUnadjustedValues dataframe')
-
+ 
+            # Handle Plant independently due to no year field existing on table
             tables = ["plant_adjusted_values", "plant_emission_rate",
                     "plant_fuel_type_generation", "plant_resource_mix", "plant_unadjusted_values"]
             
@@ -185,37 +188,43 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
                 with engine.connect() as conn:
                     trans = conn.begin()
-    
-                    conn.execute(text("""
-                        insert into plant (
-                            orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
-                            numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                            coalflag, seqplt
-                        )
-                        select
-                            orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
-                            numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                            coalflag, seqplt
-                        from plant_temp
-                        on conflict (orispl) do update
-                        set
-                            pstatabb = excluded.pstatabb,
-                            fipsst = excluded.fipsst,
-                            utlsrvid = excluded.utlsrvid,
-                            bacode = excluded.bacode,
-                            nerc = excluded.nerc,
-                            lat = excluded.lat,
-                            lon = excluded.lon,
-                            numunt = excluded.numunt,
-                            numgen = excluded.numgen,
-                            plprmfl = excluded.plprmfl,
-                            plfuelct = excluded.plfuelct,
-                            oprcode = excluded.oprcode,
-                            sector = excluded.sector,
-                            pname = excluded.pname,
-                            coalflag = excluded.coalflag,
-                            seqplt = excluded.seqplt; 
-                    """))
+                    try:
+                        conn.execute(text("""
+                            insert into plant (
+                                orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
+                                numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
+                                coalflag, seqplt, namepcap, cntyname
+                            )
+                            select
+                                orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
+                                numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
+                                coalflag, seqplt, namepcap, cntyname
+                            from plant_temp
+                            on conflict (orispl) do update
+                            set
+                                pstatabb = excluded.pstatabb,
+                                fipsst = excluded.fipsst,
+                                utlsrvid = excluded.utlsrvid,
+                                bacode = excluded.bacode,
+                                nerc = excluded.nerc,
+                                lat = excluded.lat,
+                                lon = excluded.lon,
+                                numunt = excluded.numunt,
+                                numgen = excluded.numgen,
+                                plprmfl = excluded.plprmfl,
+                                plfuelct = excluded.plfuelct,
+                                oprcode = excluded.oprcode,
+                                sector = excluded.sector,
+                                pname = excluded.pname,
+                                coalflag = excluded.coalflag,
+                                seqplt = excluded.seqplt,
+                                namepcap = excluded.namepcap,
+                                cntyname = excluded.cntyname;
+                        """))
+ 
+                        print(f"Successfully upserted: plant")
+                    except Exception as e:
+                        print(f"Error processing plant: {e}")
 
                     for table in tables:
                         try:
