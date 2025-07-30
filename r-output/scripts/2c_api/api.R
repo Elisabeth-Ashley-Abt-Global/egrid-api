@@ -1,15 +1,9 @@
 library(plumber)
-
-#* @get /hello
-function() {
-  list(message = "Hello, from R!")
-}
-
+ 
 #* @get /<year>/plant
 function(year) {
-  rds_file <- file.path(
-    ".", "egrid_outputs", year, "plant_file.RDS"
-  )
+  rds_file <- file.path("..", "..", "data", "outputs", year, "plant_file.RDS")
+ 
   tryCatch({
     plant_data <- readRDS(rds_file)
     list(success = TRUE, data = plant_data)

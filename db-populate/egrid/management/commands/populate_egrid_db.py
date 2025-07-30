@@ -17,6 +17,7 @@ import logging
 def is_api_running(url, timeout=5):
     try:
         response = requests.get(url, timeout=timeout)
+        print(f"API is running at {url}")
         return response.ok
     except (requests.ConnectionError, requests.Timeout) as e:
         print(f"API not reachable at {url}: {e}")

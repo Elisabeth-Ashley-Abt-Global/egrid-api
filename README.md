@@ -2,12 +2,17 @@
 
 This repository provides an ETL pipeline that integrates R-based data generation with a PostgreSQL database. .rds files produced by R scripts are served through a Plumber API and ingested into the database by a Python backend. The application uses Django to manage database models, migrations, and data ingestion workflows. This enables a seamless pipeline for end users to generate a reproducible database, while the Python integration lays the groundwork for future exploratory data analysis and machine learning workflows using Python libraries.
 
+-- user needs to download egrid
+-- run the r scripts to generate outputs 
+-- run Rscript run_api.R
+
 ## Overview
 
 - **R scripts** generate `.rds` data outputs
 - **Plumber** exposes these outputs via RESTful API endpoints
 - **Django** manages ORM-based schema creation and programmatically populates the database from external API sources.
 
+In R install plumber --> egrid\scripts\2c_api> Rscript run_api.R
 
 ## Setup Instructions
 
