@@ -30,7 +30,7 @@ After configuring your environment variables in `.env` and creating the PostgreS
 
 ### 1. Apply Migrations
 
-Navigate to egrid-main directory and run:
+Navigate to r-output directory and run:
 ```
 Rscript run_api.R
 ```
