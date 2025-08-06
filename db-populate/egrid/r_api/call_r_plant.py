@@ -75,19 +75,22 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                     print('Error converting column to float:', col, e) 
 
             year = df['year'].unique()[0] 
+
+            # PlantUtility
+            plantutility_df = df[['utlsrvid', 'utlsrvnm']].copy()
          
             # Plant
             plant_df = df[['pstatabb', 'fipsst', 'orispl', 'utlsrvid', 'bacode', 'subrgn',
                             'nerc', 'lat', 'lon', 'numunt', 'numgen', 'plprmfl', 
-                            'plfuelct', 'oprcode', 'sector', 'pname', 'coalflag', 'seqplt', 
-                            'cntyname', 'namepcap', 'fipscnty']].copy()
+                            'plfuelct', 'oprcode', 'oprname', 'sector', 'pname', 'coalflag', 
+                            'cntyname', 'fipscnty']].copy()
             
             plant_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) # replace placeholders else you'll encounter  invalid input syntax for type double precision
             
             # PlantAdjustedValues
             #'plhgan'
             try: 
-                plantadjustedvalues_df = df[['year', 'orispl', 'plhtian', 'plhtioz',
+                plantadjustedvalues_df = df[['year', 'orispl', 'namepcap', 'plhtian', 'plhtioz',
                                             'plhtiant', 'plhtiozt', 'plngenan', 'plngenoz', 
                                             'plnoxan', 'plnoxoz', 'plso2an',
                                             'plco2an', 'plch4an', 'pln2oan', 'plco2eqa', 'capfac']].copy()
@@ -170,6 +173,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                     "plant_fuel_type_generation", "plant_resource_mix", "plant_unadjusted_values"]
             
             df_map = {
+                "plant_utility": plantutility_df, 
                 "plant_adjusted_values": plantadjustedvalues_df,
                 "plant_emission_rate": plantemissionrate_df,
                 "plant_fuel_type_generation": plantfueltypegeneration_df,
@@ -180,6 +184,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
             try:
                 # build temp tables, replace will replace the table if it already exists
                 plant_df.to_sql('plant_temp', con=engine, if_exists='replace', index=False)
+                plantutility_df.to_sql('plant_utility_temp', con=engine, if_exists='replace', index=False)
                 plantadjustedvalues_df.to_sql('plant_adjusted_values_temp', con=engine, if_exists='replace', index=False)
                 plantemissionrate_df.to_sql('plant_emission_rate_temp', con=engine, if_exists='replace', index=False)
                 plantfueltypegeneration_df.to_sql('plant_fuel_type_generation_temp', con=engine, if_exists='replace', index=False)
@@ -192,13 +197,13 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                         conn.execute(text("""
                             insert into plant (
                                 orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
-                                numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                                coalflag, seqplt, namepcap, cntyname, subrgn
+                                numunt, numgen, plprmfl, plfuelct, oprcode, oprname, sector, pname,
+                                coalflag, cntyname, subrgn
                             )
                             select
                                 orispl, pstatabb, fipsst, utlsrvid, bacode, nerc, lat, lon,
-                                numunt, numgen, plprmfl, plfuelct, oprcode, sector, pname,
-                                coalflag, seqplt, namepcap, cntyname, subrgn
+                                numunt, numgen, plprmfl, plfuelct, oprcode, oprname, sector, pname,
+                                coalflag, cntyname, subrgn
                             from plant_temp
                             on conflict (orispl) do update
                             set
@@ -214,11 +219,10 @@ def populate_plant_data(engine=None, api_url=None, year=None):
                                 plprmfl = excluded.plprmfl,
                                 plfuelct = excluded.plfuelct,
                                 oprcode = excluded.oprcode,
+                                oprname = excluded.oprname, 
                                 sector = excluded.sector,
                                 pname = excluded.pname,
                                 coalflag = excluded.coalflag,
-                                seqplt = excluded.seqplt,
-                                namepcap = excluded.namepcap,
                                 subrgn = excluded.subrgn,
                                 cntyname = excluded.cntyname;
                         """))
@@ -241,6 +245,7 @@ def populate_plant_data(engine=None, api_url=None, year=None):
 
                     # drop temp tables
                     conn.execute(text("drop table plant_temp;"))
+                    conn.execute(text("drop table plant_utility_temp;"))
                     conn.execute(text("drop table plant_adjusted_values_temp;")) 
                     conn.execute(text("drop table plant_emission_rate_temp;"))
                     conn.execute(text("drop table plant_fuel_type_generation_temp"))

@@ -1,29 +1,54 @@
 from django.db import models
 
- 
+
 class BalancingAuthority(models.Model): 
     bacode = models.CharField(max_length=20, primary_key=True, unique=True)  
     baname = models.CharField(max_length=255)   
-    banamepcap = models.FloatField(null=True, blank=True)
   
     class Meta:
         db_table = "balancing_authority"
 
     def __str__(self):
         return self.name
+    
 
-# Make bacode a FK
+class PlantUtility(models.Model):
+    utlsrvid = models.IntegerField(primary_key=True, unique=True)
+    utlsrvnm = models.CharField(max_length=500, null=False, blank=False)
+    
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'plant_utility'
+
+
+class Subregion(models.Model): 
+    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
+    srname = models.CharField(max_length=255, null=False, blank=False)
+     
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = 'subregion'
+
+
 class Plant(models.Model):
-    seqplt   = models.IntegerField(null=True, blank=True) # seqplt
-    orispl   = models.IntegerField(null=False, blank=False, unique=True)  # Plant ID ADD A UNIQUE CONSTRAINT
+    orispl   = models.IntegerField(null=False, blank=False, unique=True)  
     pstatabb = models.CharField(max_length=1000, null=True, blank=True)
-    fipsst   = models.CharField(max_length=2, null=True, blank=True)  # State Id
+    fipsst   = models.CharField(max_length=2, null=True, blank=True) 
     pname    = models.CharField(max_length=1000, null=True, blank=True)
     oprcode  = models.IntegerField(null=True, blank=True)
-    utlsrvid = models.IntegerField(null=True, blank=True)
+    oprname  = models.CharField(max_length=1000, null=True, blank=True)
+    utlsrvid = models.ForeignKey(
+        PlantUtility, 
+        to_field='utlsrvid',
+        on_delete=models.CASCADE, 
+        db_column='utlsrvid'
+    )
     sector   = models.CharField(max_length=1000, null=True, blank=True)
-    # bacode   = models.CharField(max_length=1000, null=True, blank=True)
-    bacode = models.ForeignKey(
+    bacode   = models.ForeignKey(
         BalancingAuthority,
         to_field='bacode',
         on_delete=models.CASCADE,  
@@ -38,9 +63,14 @@ class Plant(models.Model):
     plprmfl  = models.CharField(max_length=1000, null=True, blank=True)
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
     coalflag = models.CharField(max_length=1000, null=True, blank=True)
-    subrgn   = models.CharField(null=True, blank=True, max_length=4) 
+    #subrgn = models.CharField(max_length=4, null=False, blank=False, default="NA")
+    subrgn   = models.ForeignKey(
+        Subregion, 
+        to_field='subrgn',
+        on_delete=models.CASCADE,  
+        db_column='subrgn'
+    )
     isorto   = models.CharField(null=True, blank=True, max_length=5)
-    namepcap = models.FloatField(null=True, blank=True)
     cntyname = models.CharField(max_length=4000, null=True, blank=True)
 
     def __str__(self):
@@ -59,7 +89,7 @@ class BaAdjustedValues(models.Model):
         to_field='bacode'
     )
     banamepcap = models.FloatField(null=True, blank=True)
-    bahtian    = models.FloatField(null=True, blank=True, db_comment='BA annual heat input from combustion (MMBtu)')  # BA annual heat input (MMBtu)
+    bahtian    = models.FloatField(null=True, blank=True) 
     bahtioz    = models.FloatField(null=True, blank=True)
     bahtiant   = models.FloatField(null=True, blank=True)
     bahtiozt   = models.FloatField(null=True, blank=True)
@@ -137,7 +167,7 @@ class BaFuelTypeEmissionRate(models.Model):
     bacode = models.ForeignKey(
         BalancingAuthority,
         on_delete=models.CASCADE,   # Deletes BaFuelTypeEmissionRate records if the related BalancingAuthority is deleted
-        db_column='bacode',          # Ensures the column in the database is still named 'ba_id'
+        db_column='bacode',          # Ensures the column in the database is still named 'bacode'
         to_field='bacode'
     )
     bacnoxrt  = models.FloatField(blank=True, null=True)
@@ -168,8 +198,8 @@ class BaFuelTypeEmissionRate(models.Model):
     baoc2ert  = models.FloatField(blank=True, null=True)
     bagc2ert  = models.FloatField(blank=True, null=True)
     bafsc2ert = models.FloatField(blank=True, null=True)
-    bachgrt   = models.CharField(max_length=2, blank=True, null=True) 
-    bafshgrt  = models.CharField(max_length=2, blank=True, null=True) 
+    bachgrt   = models.FloatField(blank=True, null=True) 
+    bafshgrt  = models.FloatField(blank=True, null=True) 
     bacnoxr   = models.FloatField(blank=True, null=True)
     baonoxr   = models.FloatField(blank=True, null=True)
     bagnoxr   = models.FloatField(blank=True, null=True)
@@ -198,8 +228,8 @@ class BaFuelTypeEmissionRate(models.Model):
     baoc2er   = models.FloatField(blank=True, null=True)
     bagc2er   = models.FloatField(blank=True, null=True)
     bafsc2er  = models.FloatField(blank=True, null=True)
-    bachgr    = models.CharField(max_length=2, blank=True, null=True)
-    bafshgr   = models.CharField(max_length=2, blank=True, null=True) 
+    bachgr    = models.FloatField(blank=True, null=True)
+    bafshgr   = models.FloatField(blank=True, null=True) 
     year      = models.IntegerField(null=True, blank=True)   
  
     def __str__(self):
@@ -264,7 +294,7 @@ class BaNonBaseloadValues(models.Model):
     banbch4  = models.FloatField(null=True, blank=True)
     banbn2o  = models.FloatField(null=True, blank=True)
     banbc2e  = models.FloatField(null=True, blank=True)
-    banbhg   = models.CharField(max_length=2, null=True, blank=True)
+    banbhg   = models.FloatField(null=True, blank=True)
     banbgncl = models.FloatField(null=True, blank=True)
     banbgnol = models.FloatField(null=True, blank=True)
     banbgngs = models.FloatField(null=True, blank=True)
@@ -337,7 +367,6 @@ class BaResourceMix(models.Model):
         ]
 
 class Generator(models.Model):
-    seqgen = models.FloatField(null=True, blank=True) 
     genid = models.CharField(null=True, blank=True)  
     orispl = models.IntegerField(null=False, blank=False)  
  
@@ -379,7 +408,6 @@ class Generation(models.Model):
 class NercRegion(models.Model):
     nerc = models.CharField(max_length=5, null=False, blank=False, unique=True)
     nercname = models.CharField(max_length=500, null=False, blank=False)
-    nrnamepcap = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -672,23 +700,6 @@ class NercResourceMix(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["nerc", "year"], name="nerc_resource_mix_unique_nerc_year")
         ]
-
-
-class PlantDistributionSys(models.Model):
-    oprcode = models.IntegerField(null=True, blank=True)
-    oprname = models.CharField(max_length=255, null=False, blank=False)
-    orispl = models.ForeignKey(
-                Plant,
-                on_delete=models.CASCADE,  # Deletes PlantAdjustedValue records if the related Plant is deleted
-                db_column='orispl',        
-                to_field='orispl',
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'plant_distribution_sys'
        
  
 class PlantAdjustedValues(models.Model): 
@@ -714,7 +725,7 @@ class PlantAdjustedValues(models.Model):
     pln2oan  = models.FloatField(null=True, blank=True)
     plco2eqa = models.FloatField(null=True, blank=True)
     plhgan   = models.CharField(max_length=2, null=True, blank=True)
-    capfac = models.FloatField(null=True, blank=True)
+    capfac   = models.FloatField(null=True, blank=True)
     year     = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
@@ -904,21 +915,10 @@ class PlantUnadjustedValues(models.Model):
             models.UniqueConstraint(fields=["orispl", "year"], name="plant_unadjusted_values_unique_orispl_year")
         ]
 
-
-class Sector(models.Model):
-    sector_id = models.AutoField(primary_key=True)  
-    sector = models.CharField(max_length=500, null=False, blank=False)
-   
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'sector'
  
 class State(models.Model):
     fipsst = models.CharField(max_length=2, null=False, blank=False, unique=True)
     pstatabb = models.CharField(max_length=2, null=False, blank=False)
-    stnamepcap = models.FloatField(null=True, blank=True)
    
     class Meta:
         db_table = 'state'
@@ -954,18 +954,6 @@ class StateAdjustedValues(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["fipsst", "year"], name="state_adjusted_values_unique_fipsst_year")
         ]
-
-
-class Subregion(models.Model): 
-    subrgn = models.CharField(primary_key=True, max_length=4, null=False, blank=False, unique=True)
-    srname = models.CharField(max_length=255, null=False, blank=False)
-    srnamepcap = models.FloatField(null=True, blank=True)
-     
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'subregion'
 
 
 class StateEmissionRate(models.Model):
@@ -1223,6 +1211,7 @@ class SubrgnAdjustedValues(models.Model):
                 on_delete=models.CASCADE,  # Deletes SubrgnAdjustedValues records if the related Plant is deleted
                 db_column='subrgn'          
             ) 
+    srnamepcap = models.FloatField(null=True, blank=True)
     srhtian   = models.FloatField(null=True, blank=True)
     srhtioz   = models.FloatField(null=True, blank=True)
     srhtiant  = models.FloatField(null=True, blank=True)
@@ -1420,7 +1409,7 @@ class SubrgnNonBaseloadValues(models.Model):
     srnbch4  = models.FloatField(null=True, blank=True) 
     srnbn2o  = models.FloatField(null=True, blank=True) 
     srnbc2e  = models.FloatField(null=True, blank=True) 
-    srnbhg   = models.CharField(max_length=2, null=True, blank=True) 
+    srnbhg   = models.CharField(null=True, blank=True) 
     srnbgncl = models.FloatField(null=True, blank=True) 
     srnbgnol = models.FloatField(null=True, blank=True) 
     srnbgngs = models.FloatField(null=True, blank=True) 
@@ -1490,17 +1479,6 @@ class SubrgnResourceMix(models.Model):
             models.UniqueConstraint(fields=["subrgn", "year"], name="subregion_resource_mix_unique_subrgn_year")
         ]
 
-# Got to go back to this
-class Utility(models.Model):
-    utlsrvid = models.IntegerField(primary_key=True, unique=True)
-    utlsrvnm = models.CharField(max_length=500, null=False, blank=False)
-    
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = 'utility'
-
 
 # Tables for Unit
 # Table for the fields that do not change year to year
@@ -1518,7 +1496,6 @@ class Unit(models.Model):
     prgcode  = models.CharField(max_length=4000, null=True, blank=True)
     botfirty = models.CharField(max_length=255, null=True, blank=True)
     numgen   = models.IntegerField(null=True, blank=True)
-    sequnt   = models.IntegerField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.unitid} - {self.orispl} - {self.prmvr}"

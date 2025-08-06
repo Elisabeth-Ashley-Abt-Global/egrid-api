@@ -73,12 +73,12 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
             year = df['year'].unique()[0] 
           
             # BalancingAuthority
-            ba_df = df[['bacode', 'baname', 'banamepcap']] 
+            ba_df = df[['bacode', 'baname']] 
 
             # BaAdjustedValues
             try: 
                 # include og columns in the dataframe
-                baadjustedvalues_df = df[['bacode', 'year', 'bahtian', 'bahtioz', 
+                baadjustedvalues_df = df[['bacode', 'year', 'banamepcap', 'bahtian', 'bahtioz', 
                                           'bahtiant', 'bahtiozt', 'bangenan', 'bangenoz',
                                           'banoxan', 'banoxoz', 'baso2an', 'baco2an', 
                                           'bach4an', 'ban2oan', 'baco2eqa', 'bahgan']]
@@ -198,12 +198,11 @@ def populate_balancing_auth_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
  
-                    conn.execute(text("""insert into balancing_authority (bacode, baname, banamepcap)
-                                        select bacode, baname, banamepcap
+                    conn.execute(text("""insert into balancing_authority (bacode, baname)
+                                        select bacode, baname
                                         from balancing_authority_temp
                                         on conflict (bacode) do update 
-                                        set baname = excluded.baname,
-                                        banamepcap = excluded.banamepcap;"""))
+                                        set baname = excluded.baname;"""))
                     
                     for table in tables:
                         try:

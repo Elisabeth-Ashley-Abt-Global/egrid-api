@@ -22,8 +22,8 @@ def populate_generator_data(engine=None, api_url=None, year=None):
             year = df['year'].unique()[0] 
             print('year ', year)
             # Cast columns to appropriate types
-            cast_to_float = ['seqgen', 'namepcap', 'cfact', 'genntan', 'genntoz']
-            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year', 'seqgen']
+            cast_to_float = ['namepcap', 'cfact', 'genntan', 'genntoz']
+            cast_to_int = ['orispl', 'numblr', 'genyronl', 'genyrret', 'year']
  
             for col in cast_to_int:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype("Int64")
@@ -32,7 +32,7 @@ def populate_generator_data(engine=None, api_url=None, year=None):
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
  
             # print('df', df.head()) # for debugging
-            gen_df = df[['seqgen', 'genid', 'orispl']] 
+            gen_df = df[['orispl', 'genid']] 
             gen_df = df.copy()
             gen_df.replace({"--": pd.NA, "N/A": pd.NA, "": pd.NA}, inplace=True) 
 
@@ -62,13 +62,12 @@ def populate_generator_data(engine=None, api_url=None, year=None):
                     if gen_cnt == 0:   
                         conn.execute(text("""
                             insert into generator (
-                                seqgen, genid, orispl
-                            ) select seqgen, genid, orispl from generator_temp;
+                                genid, orispl
+                            ) select genid, orispl from generator_temp;
                         """))  
                     else:
                         conn.execute(text("""
                             update generator 
-                            set seqgen = gt.seqgen, 
                             genid = gt.genid
                             from generator_temp gt 
                             where generator.orispl = gt.orispl 

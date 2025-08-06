@@ -97,11 +97,11 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
 
             # create tables 
             # Subregion
-            subregion_df = df[['subrgn', 'srname', 'srnamepcap']].copy() 
+            subregion_df = df[['subrgn', 'srname']].copy() 
 
             # SubrgnAdjustedValues
             try: 
-                subrgnadjustedvalues_df = df[['subrgn', 'srhtian', 'srhtioz', 'srhtiant', 
+                subrgnadjustedvalues_df = df[['subrgn', 'srnamepcap', 'srhtian', 'srhtioz', 'srhtiant', 
                                             'srhtiozt', 'srngenan', 'srngenoz',  
                                             'srnoxan', 'srnoxoz', 'srso2an', 'srco2an', 
                                             'srch4an', 'srn2oan', 'srco2eqa', 'srhgan', 'year']].copy()
@@ -219,12 +219,11 @@ def populate_subregion_data(engine=None, api_url=None, year=None):
                 with engine.connect() as conn:
                     trans = conn.begin()
                     
-                    conn.execute(text("""insert into subregion (subrgn, srname, srnamepcap)
-                                        select subrgn, srname, srnamepcap
+                    conn.execute(text("""insert into subregion (subrgn, srname)
+                                        select subrgn, srname
                                         from subregion_temp
                                         on conflict (subrgn) do update 
-                                        set srname = excluded.srname,
-                                        srnamepcap = excluded.srnamepcap;"""))
+                                        set srname = excluded.srname;"""))
                     
                     for table in tables:
                         try:

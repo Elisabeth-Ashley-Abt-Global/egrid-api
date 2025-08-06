@@ -3,7 +3,7 @@ import requests
 import logging
 import pandas as pd  
 from sqlalchemy import text 
-from .utils import update_from_temp_table, build_insert_from_temp_sql 
+from .utils import record_insert_update
 
 logger = logging.getLogger('egrid')
 
@@ -20,10 +20,10 @@ def populate_unit_data(engine=None, api_url=None, year=None):
             unit_data = data.get('data', [])
             df = pd.DataFrame(unit_data)
         
-            cast_to_int = ['year', 'orispl', 'numgen', 'untyronl', 'sequnt']
+            cast_to_int = ['year', 'orispl', 'numgen', 'untyronl']
 
             # Define the new columns to type cast (2023+ data)
-            new_cols = ['stackht'] # TG: this is in UnitUnadjustedValues
+            new_cols = ['stackht'] # this is in UnitUnadjustedValues
 
             cast_to_float = ['hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
                              'so2an', 'co2an', 'hgan', 'stackht']
@@ -42,7 +42,7 @@ def populate_unit_data(engine=None, api_url=None, year=None):
 
             for col in cast_to_float:
                 try:
-                    if year >= 2023: # Double check this
+                    if year >= 2023: 
                         df[col] = pd.to_numeric(df[col], errors='coerce').astype("float")
                     else:
                         if col not in new_cols: 
@@ -56,11 +56,10 @@ def populate_unit_data(engine=None, api_url=None, year=None):
 
             # create tables
             # Unit
-            unit_df = df[['sequnt', 'orispl', 'unitid', 'prmvr', 'capdflag', 
+            unit_df = df[['orispl', 'unitid', 'prmvr', 'capdflag', 
                         'prgcode', 'botfirty', 'numgen']].copy()
 
             # UnitUnadjustedValues
-            # 'untopst'
             try: 
                 unitunadjustedvalues_df = df[['year', 'orispl', 'unitid', 'prmvr', 'untopst', 'fuelu1',
                                               'hrsop', 'htian', 'htioz', 'noxan', 'noxoz', 
@@ -104,11 +103,11 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                     if unit_cnt == 0:
                         conn.execute(text("""
                             insert into unit (
-                            sequnt, orispl, unitid, prmvr, capdflag, 
+                            orispl, unitid, prmvr, capdflag, 
                             prgcode, botfirty, numgen
                             )
                             select 
-                                ut.sequnt, ut.orispl, ut.unitid, ut.prmvr, ut.capdflag, 
+                                ut.orispl, ut.unitid, ut.prmvr, ut.capdflag, 
                                 ut.prgcode, ut.botfirty, ut.numgen
                             from unit_temp ut
                             where not exists (
@@ -124,7 +123,6 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                         conn.execute(text("""
                             update unit
                             set 
-                                sequnt = unt.sequnt,
                                 orispl = unt.orispl,
                                 unitid = unt.unitid,
                                 prmvr = unt.prmvr,
@@ -143,13 +141,13 @@ def populate_unit_data(engine=None, api_url=None, year=None):
                     if unitunadjustedvalues_cnt == 0:
                         conn.execute(text("""
                             insert into unit_unadjusted_values (
-                                orispl, unitid, prmvr,
+                                orispl, unitid, prmvr, fuelu1, 
                                 hrsop, htian, htioz, noxan, noxoz, 
                                 so2an, co2an, hgan, htiansrc, 
                                 htiozsrc, noxansrc, noxozsrc, so2src, 
                                 co2src, hgsrc, so2ctldv, noxctldv, 
                                 hgctldv, untyronl, stackht
-                            ) select  orispl, unitid, prmvr,  
+                            ) select  orispl, unitid, prmvr, fuelu1, 
                                 hrsop, htian, htioz, noxan, noxoz, 
                                 so2an, co2an, hgan, htiansrc, 
                                 htiozsrc, noxansrc, noxozsrc, so2src, 
