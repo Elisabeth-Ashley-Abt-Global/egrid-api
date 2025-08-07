@@ -1,24 +1,22 @@
 # Extract, Transform, Load (ETL)
 
-This repository provides an ETL pipeline that integrates R-based data generation with a PostgreSQL database. .rds files produced by R scripts are served through a Plumber API and ingested into the database by a Python backend. The application uses Django to manage database models, migrations, and data ingestion workflows. This enables a seamless pipeline for end users to generate a reproducible database, while the Python integration lays the groundwork for future exploratory data analysis and machine learning workflows using Python libraries.
-
--- user needs to download egrid
--- run the r scripts to generate outputs 
--- run Rscript run_api.R
+This repository provides an ETL pipeline that integrates R-based data generation with a PostgreSQL database. The eGRID `.rds` files produced by R scripts in the eGRID produciton model are served through a Plumber API and ingested into the database by a Python backend. The application uses Django to manage database models, migrations, and data ingestion workflows. This enables a seamless pipeline for end users to generate a reproducible database, while the Python integration lays the groundwork for future exploratory data analysis and machine learning workflows using Python libraries.
 
 ## Overview
 
-- **R scripts** generate `.rds` data outputs
-- **Plumber** exposes these outputs via RESTful API endpoints
+- **R scripts** generates `.rds` data in the [egrid repository](https://github.com/USEPA/egrid).
+- **Plumber** exposes these outputs via RESTful API endpoints. 
 - **Django** manages ORM-based schema creation and programmatically populates the database from external API sources.
-
-In R install plumber --> egrid\scripts\2c_api> Rscript run_api.R
 
 ## Setup Instructions
 
-The user is responsible for creating the PostgreSQL database manually. Connection credentials should be configured in the .env file, which is loaded by settings.py.
+The user is responsible for creating the PostgreSQL database manually. Connection credentials should be configured in the `.env` file, which is loaded by settings.py.
 
-### 1. Configure Database Settings
+### 1. Download and run eGRID to obtain `.rds` output files
+
+Download or clone the eGRID repository at https://github.com/USEPA/egrid. Follow the instructions to generate the eGRID dataset. 
+
+### 2. Configure Database Settings
 
 Update your `.env` file located at `backend/.env` with the following values:
 
@@ -35,8 +33,9 @@ After configuring your environment variables in `.env` and creating the PostgreS
 
 ### 1. Apply Migrations
 
-Navigate to r-output directory and run:
-```
+Within the eGRID repository, navigate to `scripts/2c_api/` directory and run:
+
+```bash
 Rscript run_api.R
 ```
 
@@ -49,9 +48,8 @@ python manage.py migrate
 ### 2. Populate the Database
 Load data from the Plumber API by running:
 
-```
+```bash
 python manage.py populate_egrid_db
-
 ```
 ## Optional Arguments for Data Population
 
