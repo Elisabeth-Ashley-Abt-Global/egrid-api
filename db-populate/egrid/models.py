@@ -63,7 +63,6 @@ class Plant(models.Model):
     plprmfl  = models.CharField(max_length=1000, null=True, blank=True)
     plfuelct = models.CharField(max_length=1000, null=True, blank=True)
     coalflag = models.CharField(max_length=1000, null=True, blank=True)
-    #subrgn = models.CharField(max_length=4, null=False, blank=False, default="NA")
     subrgn   = models.ForeignKey(
         Subregion, 
         to_field='subrgn',
